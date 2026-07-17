@@ -1,0 +1,6 @@
+{
+  "name": "UpDrive Net",
+  "description": "Rebuild your driving confidence with expert, personalized training on real roads.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
