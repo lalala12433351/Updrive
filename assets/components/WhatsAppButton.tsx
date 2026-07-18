@@ -8,7 +8,7 @@ export default function WhatsAppButton() {
       
       {/* Real Floating WhatsApp Action Button */}
       <motion.a
-        href="https://wa.me/918050004161?text=Hi%2C%20Can%20i%20know%20more%20about%20Updrive%3F"
+        href="https://wa.me/919020919992?text=Hi%2C%20Can%20i%20know%20more%20about%20Updrive%3F"
         target="_blank"
         rel="noopener noreferrer"
         whileHover={{ scale: 1.1, rotate: 3 }}
