@@ -1,0 +1,18 @@
+Options -Indexes
+
+RewriteEngine On
+RewriteBase /
+
+# Serve real files & directories directly (uploads, etc.)
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Rewrite /assets/* to dist/assets/*
+RewriteRule ^assets/(.*)$ dist/assets/$1 [L]
+
+# Rewrite /uploads/* to dist/uploads/* (if any static uploads)
+RewriteRule ^uploads/(.*)$ uploads/$1 [L]
+
+# Everything else → serve dist/index.html (SPA fallback)
+RewriteRule ^ dist/index.html [L]
