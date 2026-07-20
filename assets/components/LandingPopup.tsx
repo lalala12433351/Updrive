@@ -16,6 +16,7 @@ export default function LandingPopup({ onNewBookingAdded }: LandingPopupProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [honeypot, setHoneypot] = useState('');
 
   useEffect(() => {
     // Show the popup automatically shortly after the page has loaded
@@ -38,6 +39,13 @@ export default function LandingPopup({ onNewBookingAdded }: LandingPopupProps) {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!fullName.trim() || !contactNumber.trim() || !email.trim()) return;
+
+    // Honeypot spam check
+    if (honeypot.trim()) {
+      console.warn("Spam submission blocked.");
+      setIsSuccess(true);
+      return;
+    }
 
     setIsSubmitting(true);
     setErrorMsg('');
@@ -258,6 +266,24 @@ export default function LandingPopup({ onNewBookingAdded }: LandingPopupProps) {
                         className="w-full pl-9 pr-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-xs font-medium transition-all resize-none min-h-[44px]"
                       />
                     </div>
+                  </div>
+
+                  {/* Honeypot field for bot spam prevention */}
+                  <div className="hidden" aria-hidden="true" style={{ display: 'none' }}>
+                    <label htmlFor="p_website">Leave this field blank</label>
+                    <input
+                      type="text"
+                      id="p_website"
+                      value={honeypot}
+                      onChange={(e) => setHoneypot(e.target.value)}
+                      tabIndex={-1}
+                      autoComplete="off"
+                    />
+                  </div>
+
+                  {/* Prices Disclaimer Note */}
+                  <div className="text-[10px] text-slate-550 font-medium leading-relaxed bg-slate-50/50 p-2.5 rounded-lg border border-slate-100/50 text-center">
+                    * Note: Prices may vary. The correct details will be communicated over the call.
                   </div>
 
                   {/* Double Actions Button Row */}

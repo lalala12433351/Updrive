@@ -1,6 +1,16 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { TESTIMONIALS } from '../data';
 import { Star, Quote, Instagram, Play } from 'lucide-react';
+
+export interface InstagramReel {
+  id: string;
+  caption: string;
+  views: string;
+  imageUrl?: string;
+  image?: string; // fallback for static
+  reelUrl: string;
+}
 
 import reelParkingImg from '../images/reel_parking_masterclass.png';
 import reelTrafficImg from '../images/reel_traffic_navigation.png';
@@ -31,6 +41,28 @@ const INSTAGRAM_REELS = [
 ];
 
 export default function Testimonials() {
+  const [reels, setReels] = useState<InstagramReel[]>([]);
+
+  useEffect(() => {
+    const fetchReels = async () => {
+      try {
+        const response = await fetch('/api/reels');
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.length > 0) {
+            setReels(data);
+            return;
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch dynamic reels, using fallback:", err);
+      }
+      setReels(INSTAGRAM_REELS);
+    };
+
+    fetchReels();
+  }, []);
+
   return (
     <section id="testimonials" className="py-20 bg-slate-50 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -113,7 +145,7 @@ export default function Testimonials() {
 
           {/* Grid & Carousel */}
           <div className="flex overflow-x-auto gap-6 pb-6 px-4 no-scrollbar snap-x snap-mandatory md:grid md:grid-cols-3 md:gap-8 md:pb-0 md:px-0 md:overflow-x-visible max-w-5xl mx-auto">
-            {INSTAGRAM_REELS.map((reel, index) => (
+            {reels.map((reel, index) => (
               <motion.a
                 key={reel.id}
                 href={reel.reelUrl}
@@ -127,7 +159,7 @@ export default function Testimonials() {
               >
                 {/* Cover Image */}
                 <img
-                  src={reel.image}
+                  src={reel.imageUrl || reel.image}
                   alt={reel.caption}
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   loading="lazy"

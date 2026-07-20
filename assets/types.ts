@@ -7,6 +7,7 @@ export interface PricingPackage {
   description: string;
   features: string[];
   isPopular?: boolean;
+  locations?: string[];
 }
 
 export interface Testimonial {

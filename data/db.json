@@ -1,0 +1,175 @@
+{
+  "packages": [
+    {
+      "id": "split-10-own",
+      "name": "Split Class - 10 Hours (Own Car)",
+      "duration": "10 Hours (Flexible Days)",
+      "originalPrice": 9000,
+      "promoPrice": 7499,
+      "description": "Practice on your own car with our expert instructor.",
+      "features": [
+        "10 hours of personalized training",
+        "Flexible split sessions (1 to 5 days)",
+        "Steering control, reverse & parallel parking",
+        "Practice on routes you actually use"
+      ],
+      "locations": [
+        "karnataka",
+        "tamilnadu",
+        "telangana"
+      ]
+    },
+    {
+      "id": "split-6-own",
+      "name": "Split Class - 6 Hours (Own Car)",
+      "duration": "6 Hours (Flexible Days)",
+      "originalPrice": 5000,
+      "promoPrice": 3999,
+      "description": "Perfect for brushing up on specific city driving skills.",
+      "features": [
+        "6 hours of personalized training",
+        "Flexible split sessions (1 to 3 days)",
+        "Focus on specific problem areas",
+        "Real-world city road traffic practice"
+      ],
+      "locations": [
+        "karnataka",
+        "tamilnadu",
+        "telangana"
+      ]
+    },
+    {
+      "id": "split-10-updrive",
+      "name": "Split Class - 10 Hours (UpDrive Car)",
+      "duration": "10 Hours (Flexible Days)",
+      "originalPrice": 10000,
+      "promoPrice": 8499,
+      "description": "Learn on our fully-equipped dual-control vehicles.",
+      "features": [
+        "10 hours of intensive training",
+        "Flexible split sessions (1 to 5 days)",
+        "Dual-control car provided for safety",
+        "Complete driving confidence report"
+      ],
+      "locations": [
+        "karnataka",
+        "tamilnadu",
+        "telangana"
+      ]
+    },
+    {
+      "id": "split-6-updrive",
+      "name": "Split Class - 6 Hours (UpDrive Car)",
+      "duration": "6 Hours (Flexible Days)",
+      "originalPrice": 7000,
+      "promoPrice": 5549,
+      "description": "Mid-level booster package using our training cars.",
+      "features": [
+        "6 hours of intensive training",
+        "Flexible split sessions (1 to 3 days)",
+        "Dual-control car provided for safety",
+        "Traffic and reverse driving techniques"
+      ],
+      "locations": [
+        "karnataka",
+        "tamilnadu",
+        "telangana"
+      ]
+    },
+    {
+      "id": "split-10-mixed",
+      "name": "Split Class - 10 Hours (UpDrive + Own Car)",
+      "duration": "10 Hours (Mixed)",
+      "originalPrice": 10000,
+      "promoPrice": 8499,
+      "description": "Get the best of both: transition from our car to yours.",
+      "features": [
+        "10 hours of hybrid training sessions",
+        "First sessions on UpDrive dual-control car",
+        "Final sessions on your own personal car",
+        "Smooth transition guidance by instructor"
+      ],
+      "locations": [
+        "karnataka",
+        "tamilnadu",
+        "telangana"
+      ]
+    },
+    {
+      "id": "split-6-mixed",
+      "name": "Split Class - 6 Hours (UpDrive + Own Car)",
+      "duration": "6 Hours (Mixed)",
+      "originalPrice": 7000,
+      "promoPrice": 5549,
+      "description": "Quick transition booster from our car to yours.",
+      "features": [
+        "6 hours of hybrid training sessions",
+        "First sessions on UpDrive dual-control car",
+        "Final sessions on your own personal car",
+        "Targeted parking and city confidence"
+      ],
+      "locations": [
+        "karnataka",
+        "tamilnadu",
+        "telangana"
+      ]
+    },
+    {
+      "id": "oneday-7",
+      "name": "One Day Class - 7 Hours",
+      "duration": "1 Day (7 Hours)",
+      "originalPrice": 7500,
+      "promoPrice": 6000,
+      "description": "Intense single-day marathon to lock in your driving confidence.",
+      "features": [
+        "7 hours of continuous on-road training",
+        "Dual-control training car provided",
+        "Covers highway, city traffic & parking",
+        "Perfect for fast learners & tight schedules"
+      ],
+      "locations": [
+        "kerala",
+        "karnataka",
+        "tamilnadu",
+        "telangana"
+      ]
+    }
+  ],
+  "gallery": [],
+  "reels": [
+    {
+      "id": "reel-1",
+      "caption": "Priya's parallel parking breakthrough! Mastered in under 3 minutes. 🚗🏆",
+      "views": "85.5K views",
+      "imageUrl": "/assets/images/reel_parking_masterclass.png",
+      "reelUrl": "https://www.instagram.com/updrive.official?igsh=MTdjcW9yYzYzM2kxcg%3D%3D&utm_source=qr"
+    },
+    {
+      "id": "reel-2",
+      "caption": "Day 5 navigation through Bangalore's heavy bumper-to-bumper traffic. 🚙💨",
+      "views": "95.3K views",
+      "imageUrl": "/assets/images/reel_traffic_navigation.png",
+      "reelUrl": "https://www.instagram.com/updrive.official?igsh=MTdjcW9yYzYzM2kxcg%3D%3D&utm_source=qr"
+    },
+    {
+      "id": "reel-3",
+      "caption": "From license-holder in theory to driving independently on the highway! 🎉🛣️",
+      "views": "43.2K views",
+      "imageUrl": "/assets/images/reel_driving_success.png",
+      "reelUrl": "https://www.instagram.com/updrive.official?igsh=MTdjcW9yYzYzM2kxcg%3D%3D&utm_source=qr"
+    }
+  ],
+  "heroSlides": [
+    {
+      "id": "hero-1",
+      "badge": "Master the Road",
+      "title": "Got your License?\nDrive with Confidence.",
+      "subtitle": "Don't let years of lying license hold you back. UpDrive helps you rebuild your driving skills through expert, personalized sessions on real roads—at your comfort.",
+      "imageUrl": "/assets/images/driving_instructor_student.jpg",
+      "btn1Text": "View Pricing Plans",
+      "btn1Url": "#pricing",
+      "btn2Text": "Check Our Rating",
+      "btn2Url": "#testimonials"
+    }
+  ]
+}

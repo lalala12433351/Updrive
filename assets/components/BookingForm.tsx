@@ -2,16 +2,17 @@ import { useState, useEffect, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Phone, User, MessageCircle, Calendar, Sparkles, CheckCircle, Mail } from 'lucide-react';
 import { PRICING_PACKAGES } from '../data';
-import { BookingSubmission } from '../types';
+import { BookingSubmission, PricingPackage } from '../types';
 
 interface BookingFormProps {
   selectedPackageId: string;
   selectedLocation?: string;
   onClearPackage: () => void;
   compact?: boolean;
+  packages?: PricingPackage[];
 }
 
-export default function BookingForm({ selectedPackageId, selectedLocation, onClearPackage, compact = false }: BookingFormProps) {
+export default function BookingForm({ selectedPackageId, selectedLocation, onClearPackage, compact = false, packages = [] }: BookingFormProps) {
   const [fullName, setFullName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   const [email, setEmail] = useState('');
@@ -21,6 +22,9 @@ export default function BookingForm({ selectedPackageId, selectedLocation, onCle
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [honeypot, setHoneypot] = useState('');
+
+  const activePackages = packages && packages.length > 0 ? packages : PRICING_PACKAGES;
 
   // Sync state when parent changes selected package
   useEffect(() => {
@@ -39,6 +43,13 @@ export default function BookingForm({ selectedPackageId, selectedLocation, onCle
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
+
+    // Honeypot spam check
+    if (honeypot.trim()) {
+      console.warn("Spam submission blocked.");
+      setIsSubmitted(true);
+      return;
+    }
 
     if (!fullName.trim()) {
       setErrorMsg('Please enter your full name.');
@@ -267,7 +278,7 @@ export default function BookingForm({ selectedPackageId, selectedLocation, onCle
               className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium transition-all cursor-pointer"
             >
               <option value="">-- Choose/Discuss Later --</option>
-              {PRICING_PACKAGES.map((pkg) => (
+              {activePackages.map((pkg) => (
                 <option key={pkg.id} value={pkg.id}>
                   {pkg.name} ({pkg.duration} - ₹{pkg.promoPrice.toLocaleString('en-IN')})
                 </option>
@@ -293,6 +304,24 @@ export default function BookingForm({ selectedPackageId, selectedLocation, onCle
                 className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium transition-all resize-none min-h-[54px]"
               />
             </div>
+          </div>
+
+          {/* Honeypot field for bot spam prevention */}
+          <div className="hidden" aria-hidden="true" style={{ display: 'none' }}>
+            <label htmlFor="website">Leave this field blank</label>
+            <input
+              type="text"
+              id="website"
+              value={honeypot}
+              onChange={(e) => setHoneypot(e.target.value)}
+              tabIndex={-1}
+              autoComplete="off"
+            />
+          </div>
+
+          {/* Prices Disclaimer Note */}
+          <div className="text-[10px] text-slate-500 font-medium leading-relaxed bg-slate-50/50 p-2.5 rounded-xl border border-slate-100/50 text-center">
+            * Note: Course prices may vary depending on custom route configurations and timings. The correct finalised details will be communicated directly over your consultation call.
           </div>
 
           {/* Submit button */}

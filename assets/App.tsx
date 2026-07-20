@@ -1,9 +1,4 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Features from './components/Features';
@@ -14,11 +9,56 @@ import Footer from './components/Footer';
 import LandingPopup from './components/LandingPopup';
 import WhatsAppButton from './components/WhatsAppButton';
 import TermsModal from './components/TermsModal';
+import Gallery, { GalleryItem } from './components/Gallery';
+import AdminDashboard from './components/AdminDashboard';
+import { PricingPackage } from './types';
 
 export default function App() {
   const [selectedPackageId, setSelectedPackageId] = useState<string>('');
   const [selectedLocation, setSelectedLocation] = useState<string>('kerala');
   const [showTermsModal, setShowTermsModal] = useState<boolean>(false);
+
+  // State-based routing for /admin view
+  const [isAdminView, setIsAdminView] = useState<boolean>(false);
+  const [packages, setPackages] = useState<PricingPackage[]>([]);
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (window.location.pathname === '/superadmin') {
+      setIsAdminView(true);
+      setIsLoading(false);
+    } else {
+      // Fetch dynamic content on mount
+      const fetchContent = async () => {
+        try {
+          const coursesRes = await fetch('/api/courses');
+          if (coursesRes.ok) {
+            const coursesData = await coursesRes.json();
+            if (coursesData && coursesData.length > 0) {
+              setPackages(coursesData);
+            }
+          }
+        } catch (err) {
+          console.error("Failed to load courses from API:", err);
+        }
+
+        try {
+          const galleryRes = await fetch('/api/gallery');
+          if (galleryRes.ok) {
+            const galleryData = await galleryRes.json();
+            setGalleryItems(galleryData);
+          }
+        } catch (err) {
+          console.error("Failed to load gallery from API:", err);
+        }
+        
+        setIsLoading(false);
+      };
+
+      fetchContent();
+    }
+  }, []);
 
   const handleScrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -40,6 +80,10 @@ export default function App() {
   const handleNewBookingAdded = () => {
     window.dispatchEvent(new Event('updrive_booking_created'));
   };
+
+  if (isAdminView) {
+    return <AdminDashboard />;
+  }
 
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans antialiased selection:bg-blue-500 selection:text-white">
@@ -66,7 +110,13 @@ export default function App() {
           onSelectPackage={handleSelectPackage} 
           selectedLocation={selectedLocation}
           onSelectLocation={setSelectedLocation}
+          packages={packages}
         />
+
+        {/* Dynamic Image Gallery */}
+        {!isLoading && galleryItems.length > 0 && (
+          <Gallery items={galleryItems} />
+        )}
 
         {/* Testimonials Review Section */}
         <Testimonials />
@@ -76,6 +126,7 @@ export default function App() {
           selectedPackageId={selectedPackageId} 
           selectedLocation={selectedLocation}
           onClearPackage={handleClearPackage} 
+          packages={packages}
         />
       </main>
 
@@ -87,4 +138,3 @@ export default function App() {
     </div>
   );
 }
-

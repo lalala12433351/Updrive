@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PRICING_PACKAGES } from '../data';
 import { Check, ArrowRight } from 'lucide-react';
+import { PricingPackage } from '../types';
 
 interface PricingProps {
   selectedPackageId: string;
   onSelectPackage: (id: string) => void;
   selectedLocation: string;
   onSelectLocation: (loc: string) => void;
+  packages?: PricingPackage[];
 }
 
 // Custom SVG Icons representing the states
@@ -141,7 +143,8 @@ export default function Pricing({
   selectedPackageId, 
   onSelectPackage,
   selectedLocation,
-  onSelectLocation
+  onSelectLocation,
+  packages = []
 }: PricingProps) {
   const location = selectedLocation;
   const setLocation = onSelectLocation;
@@ -150,15 +153,32 @@ export default function Pricing({
 
   const activeLoc = LOCATIONS.find(l => l.id === location) || LOCATIONS[0];
 
-  const getPackageById = (id: string) => PRICING_PACKAGES.find(p => p.id === id);
+  const activePackages = packages && packages.length > 0 ? packages : PRICING_PACKAGES;
 
-  const ownCar10 = getPackageById('split-10-own');
-  const ownCar6 = getPackageById('split-6-own');
-  const updriveCar10 = getPackageById('split-10-updrive');
-  const updriveCar6 = getPackageById('split-6-updrive');
-  const mixedCar10 = getPackageById('split-10-mixed');
-  const mixedCar6 = getPackageById('split-6-mixed');
-  const oneDayPkg = getPackageById('oneday-7');
+  // Filter packages based on selected state/location first
+  const statePackages = activePackages.filter(p => {
+    if (p.locations && p.locations.length > 0) {
+      return p.locations.includes(location);
+    }
+    // Fallback/Default behavior: Kerala only gets "oneday" packages
+    if (location === 'kerala') {
+      return p.id.toLowerCase().includes('oneday') || p.id.toLowerCase().includes('one-day');
+    }
+    return true;
+  });
+
+  // Filter statePackages dynamically into groups
+  const ownCarPackages = statePackages.filter(p => p.id.toLowerCase().includes('own'));
+  const updriveCarPackages = statePackages.filter(p => p.id.toLowerCase().includes('updrive') && !p.id.toLowerCase().includes('mixed'));
+  const mixedCarPackages = statePackages.filter(p => p.id.toLowerCase().includes('mixed'));
+  const oneDayPackages = statePackages.filter(p => p.id.toLowerCase().includes('oneday') || p.id.toLowerCase().includes('one-day'));
+  const otherPackages = statePackages.filter(p => 
+    !p.id.toLowerCase().includes('own') && 
+    !p.id.toLowerCase().includes('updrive') && 
+    !p.id.toLowerCase().includes('mixed') && 
+    !p.id.toLowerCase().includes('oneday') &&
+    !p.id.toLowerCase().includes('one-day')
+  );
 
   const handleLocationClick = (locId: string) => {
     setLocation(locId);
@@ -375,8 +395,7 @@ export default function Pricing({
                             <span className="text-xs font-black tracking-wider text-slate-700 uppercase">with your own car</span>
                             <p className="text-slate-400 text-xxs mt-0.5 leading-snug">Practice in your personal car with our instructor</p>
                           </div>
-                          {renderCard(ownCar10)}
-                          {renderCard(ownCar6)}
+                          {ownCarPackages.map(pkg => renderCard(pkg))}
                         </div>
 
                         {/* Column 2: with updrive car */}
@@ -385,8 +404,7 @@ export default function Pricing({
                             <span className="text-xs font-black tracking-wider text-slate-700 uppercase">with updrive car</span>
                             <p className="text-slate-400 text-xxs mt-0.5 leading-snug">Learn on our modern dual-control training cars</p>
                           </div>
-                          {renderCard(updriveCar10)}
-                          {renderCard(updriveCar6)}
+                          {updriveCarPackages.map(pkg => renderCard(pkg))}
                         </div>
 
                         {/* Column 3: with updrive car + Own car */}
@@ -395,8 +413,7 @@ export default function Pricing({
                             <span className="text-xs font-black tracking-wider text-slate-700 uppercase">with updrive car + Own car</span>
                             <p className="text-slate-400 text-xxs mt-0.5 leading-snug">Hybrid sessions transitioning from our car to yours</p>
                           </div>
-                          {renderCard(mixedCar10)}
-                          {renderCard(mixedCar6)}
+                          {mixedCarPackages.map(pkg => renderCard(pkg))}
                         </div>
 
                       </div>
@@ -417,11 +434,33 @@ export default function Pricing({
                         </p>
                       </div>
 
-                      <div className="flex justify-center">
-                        <div className="w-full max-w-sm">
-                          {renderCard(oneDayPkg, true)}
+                      {oneDayPackages.length > 0 && (
+                        <div className="flex justify-center animate-fadeIn">
+                          <div className="w-full max-w-sm space-y-4">
+                            {oneDayPackages.map(pkg => renderCard(pkg, true))}
+                          </div>
                         </div>
-                      </div>
+                      )}
+
+                      {otherPackages.length > 0 && (
+                        <>
+                          <div className="h-px bg-slate-100 w-full my-8" />
+                          <div className="space-y-8">
+                            <div className="text-left">
+                              <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                                <span className="w-1 h-5 bg-blue-600 rounded-full"></span>
+                                Custom Programs
+                              </h3>
+                              <p className="text-slate-500 text-xs mt-0.5">
+                                Additional customizable driver packages.
+                              </p>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                              {otherPackages.map(pkg => renderCard(pkg))}
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </div>
 
                   </div>
@@ -438,8 +477,8 @@ export default function Pricing({
                       </p>
                     </div>
 
-                    <div>
-                      {renderCard(oneDayPkg, true)}
+                    <div className="space-y-4">
+                      {oneDayPackages.map(pkg => renderCard(pkg, true))}
                     </div>
                   </div>
                 )}
