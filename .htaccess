@@ -1,5 +1,15 @@
 Options -Indexes
 
+# ── MIME Types (fixes "text/plain" JS module error on cPanel) ──────────────
+AddType application/javascript .js .mjs
+AddType text/css .css
+AddType image/png .png
+AddType image/jpeg .jpg .jpeg
+AddType image/svg+xml .svg
+AddType image/webp .webp
+AddType font/woff2 .woff2
+AddType font/woff .woff
+
 RewriteEngine On
 RewriteBase /
 
@@ -11,7 +21,7 @@ RewriteRule ^ - [L]
 # Rewrite /assets/* to dist/assets/*
 RewriteRule ^assets/(.*)$ dist/assets/$1 [L]
 
-# Rewrite /uploads/* to dist/uploads/* (if any static uploads)
+# Rewrite /uploads/* → uploads/ folder
 RewriteRule ^uploads/(.*)$ uploads/$1 [L]
 
 # Everything else → serve dist/index.html (SPA fallback)
