@@ -12,6 +12,7 @@ import TermsModal from './components/TermsModal';
 import Gallery, { GalleryItem } from './components/Gallery';
 import AdminDashboard from './components/AdminDashboard';
 import { PricingPackage } from './types';
+import { dataService } from './services/dataService';
 
 export default function App() {
   const [selectedPackageId, setSelectedPackageId] = useState<string>('');
@@ -34,44 +35,12 @@ export default function App() {
     } else {
       // Fetch dynamic content on mount
       const fetchContent = async () => {
-        try {
-          const coursesRes = await fetch('/api/courses');
-          const contentType = coursesRes.headers.get('content-type');
-          if (coursesRes.ok && contentType && contentType.includes('application/json')) {
-            const coursesData = await coursesRes.json();
-            if (Array.isArray(coursesData) && coursesData.length > 0) {
-              setPackages(coursesData);
-              localStorage.setItem('updrive_cache_courses', JSON.stringify(coursesData));
-            }
-          } else {
-            const cached = localStorage.getItem('updrive_cache_courses');
-            if (cached) setPackages(JSON.parse(cached));
-          }
-        } catch (err) {
-          console.warn("API unreachable, loading cached courses:", err);
-          const cached = localStorage.getItem('updrive_cache_courses');
-          if (cached) setPackages(JSON.parse(cached));
-        }
+        const courses = await dataService.getCourses();
+        setPackages(courses);
 
-        try {
-          const galleryRes = await fetch('/api/gallery');
-          const contentType = galleryRes.headers.get('content-type');
-          if (galleryRes.ok && contentType && contentType.includes('application/json')) {
-            const galleryData = await galleryRes.json();
-            if (Array.isArray(galleryData)) {
-              setGalleryItems(galleryData);
-              localStorage.setItem('updrive_cache_gallery', JSON.stringify(galleryData));
-            }
-          } else {
-            const cached = localStorage.getItem('updrive_cache_gallery');
-            if (cached) setGalleryItems(JSON.parse(cached));
-          }
-        } catch (err) {
-          console.warn("API unreachable, loading cached gallery:", err);
-          const cached = localStorage.getItem('updrive_cache_gallery');
-          if (cached) setGalleryItems(JSON.parse(cached));
-        }
-        
+        const gallery = await dataService.getGallery();
+        setGalleryItems(gallery);
+
         setIsLoading(false);
       };
 

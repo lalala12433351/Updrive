@@ -4,6 +4,7 @@ import { PricingPackage } from '../types';
 import { GalleryItem } from './Gallery';
 import { InstagramReel } from './Testimonials';
 import { HeroSlide } from './Hero';
+import { dataService } from '../services/dataService';
 
 export default function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -127,65 +128,21 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     setIsLoadingData(true);
-    
     try {
-      const coursesRes = await fetch('/api/courses');
-      if (coursesRes.ok && coursesRes.headers.get('content-type')?.includes('application/json')) {
-        const data = await coursesRes.json();
-        setPackages(data);
-        localStorage.setItem('updrive_cache_courses', JSON.stringify(data));
-      } else {
-        const cached = localStorage.getItem('updrive_cache_courses');
-        if (cached) setPackages(JSON.parse(cached));
-      }
-    } catch (e) {
-      const cached = localStorage.getItem('updrive_cache_courses');
-      if (cached) setPackages(JSON.parse(cached));
-    }
+      const courses = await dataService.getCourses();
+      setPackages(courses);
 
-    try {
-      const galleryRes = await fetch('/api/gallery');
-      if (galleryRes.ok && galleryRes.headers.get('content-type')?.includes('application/json')) {
-        const data = await galleryRes.json();
-        setGallery(data);
-        localStorage.setItem('updrive_cache_gallery', JSON.stringify(data));
-      } else {
-        const cached = localStorage.getItem('updrive_cache_gallery');
-        if (cached) setGallery(JSON.parse(cached));
-      }
-    } catch (e) {
-      const cached = localStorage.getItem('updrive_cache_gallery');
-      if (cached) setGallery(JSON.parse(cached));
-    }
+      const galleryData = await dataService.getGallery();
+      setGallery(galleryData);
 
-    try {
-      const reelsRes = await fetch('/api/reels');
-      if (reelsRes.ok && reelsRes.headers.get('content-type')?.includes('application/json')) {
-        const data = await reelsRes.json();
-        setReels(data);
-        localStorage.setItem('updrive_cache_reels', JSON.stringify(data));
-      } else {
-        const cached = localStorage.getItem('updrive_cache_reels');
-        if (cached) setReels(JSON.parse(cached));
-      }
-    } catch (e) {
-      const cached = localStorage.getItem('updrive_cache_reels');
-      if (cached) setReels(JSON.parse(cached));
-    }
+      const reelsData = await dataService.getReels();
+      setReels(reelsData);
 
-    try {
-      const heroRes = await fetch('/api/hero');
-      if (heroRes.ok && heroRes.headers.get('content-type')?.includes('application/json')) {
-        const data = await heroRes.json();
-        setHeroSlides(data);
-        localStorage.setItem('updrive_cache_hero', JSON.stringify(data));
-      } else {
-        const cached = localStorage.getItem('updrive_cache_hero');
-        if (cached) setHeroSlides(JSON.parse(cached));
-      }
-    } catch (e) {
-      const cached = localStorage.getItem('updrive_cache_hero');
-      if (cached) setHeroSlides(JSON.parse(cached));
+      const heroData = await dataService.getHeroSlides();
+      setHeroSlides(heroData);
+    } catch (err) {
+      console.error('Error fetching admin data:', err);
+      showToast('error', 'Failed to load database records.');
     } finally {
       setIsLoadingData(false);
     }
@@ -238,29 +195,8 @@ export default function AdminDashboard() {
 
   const handleSaveCourses = async () => {
     setIsSavingCourses(true);
-    localStorage.setItem('updrive_cache_courses', JSON.stringify(packages));
-    const token = localStorage.getItem('updrive_superadmin_token');
-    try {
-      const response = await fetch('/api/courses', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(packages)
-      });
-      const contentType = response.headers.get('content-type');
-      if (response.ok && contentType && contentType.includes('application/json')) {
-        const data = await response.json();
-        if (data.success) {
-          showToast('success', 'Pricing packages saved to server!');
-          return;
-        }
-      }
-    } catch (err) {
-      console.warn("Server API offline, saved locally:", err);
-    }
-    showToast('success', 'Pricing packages saved locally!');
+    const result = await dataService.saveCourses(packages);
+    showToast('success', result.message || 'Pricing packages saved!');
     setIsSavingCourses(false);
   };
 
@@ -270,40 +206,30 @@ export default function AdminDashboard() {
     if (!file) return;
 
     setIsUploading(true);
-    const token = localStorage.getItem('updrive_superadmin_token');
-
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = async () => {
       try {
         const base64Data = reader.result as string;
-        const response = await fetch('/api/gallery/upload', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ fileName: file.name, base64Data })
-        });
-        
-        const data = await response.json();
-        if (response.ok && data.success) {
+        const uploadRes = await dataService.uploadImage(file.name, base64Data);
+        if (uploadRes.success && uploadRes.url) {
           const newItem: GalleryItem = {
             id: 'g-' + Date.now(),
-            url: data.url,
+            url: uploadRes.url,
             caption: uploadCaption.trim() || 'Driving session highlight'
           };
-          setGallery([newItem, ...gallery]);
+          const updatedGallery = [newItem, ...gallery];
+          setGallery(updatedGallery);
+          await dataService.saveGallery(updatedGallery);
           setUploadCaption('');
           showToast('success', 'Image uploaded successfully!');
         } else {
-          showToast('error', data.message || 'Upload failed.');
+          showToast('error', 'Upload failed.');
         }
       } catch (err) {
-        showToast('error', 'Connection error during image upload.');
+        showToast('error', 'Error during image upload.');
       } finally {
         setIsUploading(false);
-        // Reset file input
         e.target.value = '';
       }
     };
@@ -321,30 +247,8 @@ export default function AdminDashboard() {
 
   const handleSaveGallery = async () => {
     setIsSavingGallery(true);
-    localStorage.setItem('updrive_cache_gallery', JSON.stringify(gallery));
-    const token = localStorage.getItem('updrive_superadmin_token');
-    try {
-      const response = await fetch('/api/gallery', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(gallery)
-      });
-      const contentType = response.headers.get('content-type');
-      if (response.ok && contentType && contentType.includes('application/json')) {
-        const data = await response.json();
-        if (data.success) {
-          showToast('success', 'Gallery items saved to server!');
-          setIsSavingGallery(false);
-          return;
-        }
-      }
-    } catch (err) {
-      console.warn("Server API offline, saved locally:", err);
-    }
-    showToast('success', 'Gallery items saved locally!');
+    const result = await dataService.saveGallery(gallery);
+    showToast('success', result.message || 'Gallery items saved!');
     setIsSavingGallery(false);
   };
 
@@ -372,30 +276,8 @@ export default function AdminDashboard() {
 
   const handleSaveReels = async () => {
     setIsSavingReels(true);
-    localStorage.setItem('updrive_cache_reels', JSON.stringify(reels));
-    const token = localStorage.getItem('updrive_superadmin_token');
-    try {
-      const response = await fetch('/api/reels', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(reels)
-      });
-      const contentType = response.headers.get('content-type');
-      if (response.ok && contentType && contentType.includes('application/json')) {
-        const data = await response.json();
-        if (data.success) {
-          showToast('success', 'Instagram reels saved to server!');
-          setIsSavingReels(false);
-          return;
-        }
-      }
-    } catch (err) {
-      console.warn("Server API offline, saved locally:", err);
-    }
-    showToast('success', 'Instagram reels saved locally!');
+    const result = await dataService.saveReels(reels);
+    showToast('success', result.message || 'Instagram reels saved!');
     setIsSavingReels(false);
   };
 
@@ -436,30 +318,20 @@ export default function AdminDashboard() {
     if (!file) return;
 
     setIsUploadingReelCover(true);
-    const token = localStorage.getItem('updrive_superadmin_token');
-
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = async () => {
       try {
         const base64Data = reader.result as string;
-        const response = await fetch('/api/gallery/upload', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ fileName: file.name, base64Data })
-        });
-        const data = await response.json();
-        if (response.ok && data.success) {
-          handleReelFieldChange(reelIdx, 'imageUrl', data.url);
-          showToast('success', 'Reel cover image uploaded!');
+        const uploadRes = await dataService.uploadImage(file.name, base64Data);
+        if (uploadRes.success && uploadRes.url) {
+          handleReelFieldChange(reelIdx, 'imageUrl', uploadRes.url);
+          showToast('success', 'Reel cover image updated!');
         } else {
-          showToast('error', data.message || 'Cover upload failed.');
+          showToast('error', 'Cover upload failed.');
         }
       } catch (err) {
-        showToast('error', 'Connection error during cover upload.');
+        showToast('error', 'Error during cover upload.');
       } finally {
         setIsUploadingReelCover(false);
       }
@@ -494,30 +366,8 @@ export default function AdminDashboard() {
 
   const handleSaveHero = async () => {
     setIsSavingHero(true);
-    localStorage.setItem('updrive_cache_hero', JSON.stringify(heroSlides));
-    const token = localStorage.getItem('updrive_superadmin_token');
-    try {
-      const response = await fetch('/api/hero', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(heroSlides)
-      });
-      const contentType = response.headers.get('content-type');
-      if (response.ok && contentType && contentType.includes('application/json')) {
-        const data = await response.json();
-        if (data.success) {
-          showToast('success', 'Hero banner slides saved to server!');
-          setIsSavingHero(false);
-          return;
-        }
-      }
-    } catch (err) {
-      console.warn("Server API offline, saved locally:", err);
-    }
-    showToast('success', 'Hero banner slides saved locally!');
+    const result = await dataService.saveHeroSlides(heroSlides);
+    showToast('success', result.message || 'Hero banner saved!');
     setIsSavingHero(false);
   };
 
@@ -526,30 +376,20 @@ export default function AdminDashboard() {
     if (!file) return;
 
     setIsUploadingHeroImage(true);
-    const token = localStorage.getItem('updrive_superadmin_token');
-
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = async () => {
       try {
         const base64Data = reader.result as string;
-        const response = await fetch('/api/gallery/upload', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ fileName: file.name, base64Data })
-        });
-        const data = await response.json();
-        if (response.ok && data.success) {
-          handleHeroFieldChange(slideIdx, 'imageUrl', data.url);
-          showToast('success', 'Hero slide image uploaded!');
+        const uploadRes = await dataService.uploadImage(file.name, base64Data);
+        if (uploadRes.success && uploadRes.url) {
+          handleHeroFieldChange(slideIdx, 'imageUrl', uploadRes.url);
+          showToast('success', 'Hero image updated!');
         } else {
-          showToast('error', data.message || 'Hero image upload failed.');
+          showToast('error', 'Hero image upload failed.');
         }
       } catch (err) {
-        showToast('error', 'Connection error during hero image upload.');
+        showToast('error', 'Error during hero image upload.');
       } finally {
         setIsUploadingHeroImage(false);
       }

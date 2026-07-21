@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { TESTIMONIALS } from '../data';
 import { Star, Quote, Instagram, Play } from 'lucide-react';
+import { dataService } from '../services/dataService';
 
 export interface InstagramReel {
   id: string;
@@ -45,31 +46,12 @@ export default function Testimonials() {
 
   useEffect(() => {
     const fetchReels = async () => {
-      try {
-        const response = await fetch('/api/reels');
-        const contentType = response.headers.get('content-type');
-        if (response.ok && contentType && contentType.includes('application/json')) {
-          const data = await response.json();
-          if (Array.isArray(data) && data.length > 0) {
-            setReels(data);
-            localStorage.setItem('updrive_cache_reels', JSON.stringify(data));
-            return;
-          }
-        }
-      } catch (err) {
-        console.warn("Failed to fetch dynamic reels, using fallback:", err);
+      const reelsData = await dataService.getReels();
+      if (reelsData && reelsData.length > 0) {
+        setReels(reelsData);
+      } else {
+        setReels(INSTAGRAM_REELS);
       }
-      const cached = localStorage.getItem('updrive_cache_reels');
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setReels(parsed);
-            return;
-          }
-        } catch (e) {}
-      }
-      setReels(INSTAGRAM_REELS);
     };
 
     fetchReels();

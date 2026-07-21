@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, CheckCircle2, Star } from 'lucide-react';
 import drivingInstructorStudent from '../images/driving_instructor_student.jpg';
+import { dataService } from '../services/dataService';
 
 export interface HeroSlide {
   id: string;
@@ -38,23 +39,9 @@ export default function Hero({ onScrollToSection }: HeroProps) {
 
   useEffect(() => {
     const fetchHero = async () => {
-      try {
-        const response = await fetch('/api/hero');
-        const contentType = response.headers.get('content-type');
-        if (response.ok && contentType && contentType.includes('application/json')) {
-          const data = await response.json();
-          if (Array.isArray(data) && data.length > 0) {
-            setSlides(data);
-            localStorage.setItem('updrive_cache_hero', JSON.stringify(data));
-            return;
-          }
-        }
-      } catch (err) {
-        console.warn("Failed to load hero slides from API, checking cache:", err);
-      }
-      const cached = localStorage.getItem('updrive_cache_hero');
-      if (cached) {
-        try { setSlides(JSON.parse(cached)); } catch (e) {}
+      const heroData = await dataService.getHeroSlides();
+      if (heroData && heroData.length > 0) {
+        setSlides(heroData);
       }
     };
 
