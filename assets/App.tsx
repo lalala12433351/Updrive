@@ -25,7 +25,10 @@ export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    if (window.location.pathname === '/superadmin') {
+    const isSuperAdmin = window.location.pathname.endsWith('/superadmin') || 
+                         window.location.hash === '#superadmin' || 
+                         window.location.search.includes('superadmin');
+    if (isSuperAdmin) {
       setIsAdminView(true);
       setIsLoading(false);
     } else {

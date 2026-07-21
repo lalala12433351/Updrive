@@ -1,6 +1,5 @@
 Options -Indexes
 
-# ── MIME Types (fixes "text/plain" JS module error on cPanel) ──────────────
 AddType application/javascript .js .mjs
 AddType text/css .css
 AddType image/png .png
@@ -10,24 +9,20 @@ AddType image/webp .webp
 AddType font/woff2 .woff2
 AddType font/woff .woff
 
-RewriteEngine On
-RewriteBase /
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
 
-# Serve real files & directories directly (uploads, etc.)
-RewriteCond %{REQUEST_FILENAME} -f [OR]
-RewriteCond %{REQUEST_FILENAME} -d
-RewriteRule ^ - [L]
+  # Proxy /api requests to local Node server on port 5000 if mod_proxy is active
+  <IfModule mod_proxy.c>
+    RewriteRule ^api/(.*)$ http://127.0.0.1:5000/api/$1 [P,L]
+  </IfModule>
 
-# Rewrite /assets/* to dist/assets/*
-RewriteRule ^assets/(.*)$ dist/assets/$1 [L]
+  # Serve real files & directories directly
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
 
-# Rewrite /uploads/* → uploads/ folder
-RewriteRule ^uploads/(.*)$ uploads/$1 [L]
-
-# Proxy /api requests to local Node server on port 5000 if mod_proxy is active
-<IfModule mod_proxy.c>
-  RewriteRule ^api/(.*)$ http://127.0.0.1:5000/api/$1 [P,L]
+  # Everything else → serve index.html (SPA fallback)
+  RewriteRule . /index.html [L]
 </IfModule>
-
-# Everything else → serve index.html (SPA fallback)
-RewriteRule ^ index.html [L]
