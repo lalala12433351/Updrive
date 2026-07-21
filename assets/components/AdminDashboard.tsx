@@ -148,9 +148,14 @@ export default function AdminDashboard() {
 
   const handleSaveCourses = async () => {
     setIsSavingCourses(true);
-    const result = await dataService.saveCourses(packages);
-    showToast('success', result.message || 'Pricing packages saved!');
-    setIsSavingCourses(false);
+    try {
+      const result = await dataService.saveCourses(packages);
+      showToast('success', result.message || 'Pricing packages saved!');
+    } catch (err) {
+      showToast('error', 'Error saving course packages.');
+    } finally {
+      setIsSavingCourses(false);
+    }
   };
 
   // Gallery management helpers
@@ -200,9 +205,14 @@ export default function AdminDashboard() {
 
   const handleSaveGallery = async () => {
     setIsSavingGallery(true);
-    const result = await dataService.saveGallery(gallery);
-    showToast('success', result.message || 'Gallery items saved!');
-    setIsSavingGallery(false);
+    try {
+      const result = await dataService.saveGallery(gallery);
+      showToast('success', result.message || 'Gallery items saved!');
+    } catch (err) {
+      showToast('error', 'Error saving gallery media.');
+    } finally {
+      setIsSavingGallery(false);
+    }
   };
 
   // Reels management helpers
@@ -229,9 +239,14 @@ export default function AdminDashboard() {
 
   const handleSaveReels = async () => {
     setIsSavingReels(true);
-    const result = await dataService.saveReels(reels);
-    showToast('success', result.message || 'Instagram reels saved!');
-    setIsSavingReels(false);
+    try {
+      const result = await dataService.saveReels(reels);
+      showToast('success', result.message || 'Instagram reels saved!');
+    } catch (err) {
+      showToast('error', 'Error saving Instagram reels.');
+    } finally {
+      setIsSavingReels(false);
+    }
   };
 
   const handleFetchReelCover = async (index: number, reelUrl: string) => {
@@ -319,9 +334,14 @@ export default function AdminDashboard() {
 
   const handleSaveHero = async () => {
     setIsSavingHero(true);
-    const result = await dataService.saveHeroSlides(heroSlides);
-    showToast('success', result.message || 'Hero banner saved!');
-    setIsSavingHero(false);
+    try {
+      const result = await dataService.saveHeroSlides(heroSlides);
+      showToast('success', result.message || 'Hero banner saved!');
+    } catch (err) {
+      showToast('error', 'Error saving hero slides.');
+    } finally {
+      setIsSavingHero(false);
+    }
   };
 
   const handleUploadHeroImage = async (e: React.ChangeEvent<HTMLInputElement>, slideIdx: number) => {
