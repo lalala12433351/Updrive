@@ -40,15 +40,21 @@ export default function Hero({ onScrollToSection }: HeroProps) {
     const fetchHero = async () => {
       try {
         const response = await fetch('/api/hero');
-        if (response.ok) {
+        const contentType = response.headers.get('content-type');
+        if (response.ok && contentType && contentType.includes('application/json')) {
           const data = await response.json();
-          if (data && data.length > 0) {
+          if (Array.isArray(data) && data.length > 0) {
             setSlides(data);
+            localStorage.setItem('updrive_cache_hero', JSON.stringify(data));
             return;
           }
         }
       } catch (err) {
-        console.error("Failed to load hero slides from API:", err);
+        console.warn("Failed to load hero slides from API, checking cache:", err);
+      }
+      const cached = localStorage.getItem('updrive_cache_hero');
+      if (cached) {
+        try { setSlides(JSON.parse(cached)); } catch (e) {}
       }
     };
 

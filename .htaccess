@@ -24,5 +24,10 @@ RewriteRule ^assets/(.*)$ dist/assets/$1 [L]
 # Rewrite /uploads/* → uploads/ folder
 RewriteRule ^uploads/(.*)$ uploads/$1 [L]
 
+# Proxy /api requests to local Node server on port 5000 if mod_proxy is active
+<IfModule mod_proxy.c>
+  RewriteRule ^api/(.*)$ http://127.0.0.1:5000/api/$1 [P,L]
+</IfModule>
+
 # Everything else → serve dist/index.html (SPA fallback)
 RewriteRule ^ dist/index.html [L]

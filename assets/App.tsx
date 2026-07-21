@@ -33,24 +33,40 @@ export default function App() {
       const fetchContent = async () => {
         try {
           const coursesRes = await fetch('/api/courses');
-          if (coursesRes.ok) {
+          const contentType = coursesRes.headers.get('content-type');
+          if (coursesRes.ok && contentType && contentType.includes('application/json')) {
             const coursesData = await coursesRes.json();
-            if (coursesData && coursesData.length > 0) {
+            if (Array.isArray(coursesData) && coursesData.length > 0) {
               setPackages(coursesData);
+              localStorage.setItem('updrive_cache_courses', JSON.stringify(coursesData));
             }
+          } else {
+            const cached = localStorage.getItem('updrive_cache_courses');
+            if (cached) setPackages(JSON.parse(cached));
           }
         } catch (err) {
-          console.error("Failed to load courses from API:", err);
+          console.warn("API unreachable, loading cached courses:", err);
+          const cached = localStorage.getItem('updrive_cache_courses');
+          if (cached) setPackages(JSON.parse(cached));
         }
 
         try {
           const galleryRes = await fetch('/api/gallery');
-          if (galleryRes.ok) {
+          const contentType = galleryRes.headers.get('content-type');
+          if (galleryRes.ok && contentType && contentType.includes('application/json')) {
             const galleryData = await galleryRes.json();
-            setGalleryItems(galleryData);
+            if (Array.isArray(galleryData)) {
+              setGalleryItems(galleryData);
+              localStorage.setItem('updrive_cache_gallery', JSON.stringify(galleryData));
+            }
+          } else {
+            const cached = localStorage.getItem('updrive_cache_gallery');
+            if (cached) setGalleryItems(JSON.parse(cached));
           }
         } catch (err) {
-          console.error("Failed to load gallery from API:", err);
+          console.warn("API unreachable, loading cached gallery:", err);
+          const cached = localStorage.getItem('updrive_cache_gallery');
+          if (cached) setGalleryItems(JSON.parse(cached));
         }
         
         setIsLoading(false);

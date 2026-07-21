@@ -47,15 +47,27 @@ export default function Testimonials() {
     const fetchReels = async () => {
       try {
         const response = await fetch('/api/reels');
-        if (response.ok) {
+        const contentType = response.headers.get('content-type');
+        if (response.ok && contentType && contentType.includes('application/json')) {
           const data = await response.json();
-          if (data && data.length > 0) {
+          if (Array.isArray(data) && data.length > 0) {
             setReels(data);
+            localStorage.setItem('updrive_cache_reels', JSON.stringify(data));
             return;
           }
         }
       } catch (err) {
-        console.error("Failed to fetch dynamic reels, using fallback:", err);
+        console.warn("Failed to fetch dynamic reels, using fallback:", err);
+      }
+      const cached = localStorage.getItem('updrive_cache_reels');
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setReels(parsed);
+            return;
+          }
+        } catch (e) {}
       }
       setReels(INSTAGRAM_REELS);
     };
