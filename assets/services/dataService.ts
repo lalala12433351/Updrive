@@ -13,16 +13,29 @@ const STORAGE_KEYS = {
   HERO: 'updrive_db_hero',
 };
 
-// Safe JSON fetch helper
+// Safe fetch helper with 800ms fast timeout so static web hosts never stall on offline APIs
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs: number = 800): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timer);
+    return res;
+  } catch (err) {
+    clearTimeout(timer);
+    throw err;
+  }
+}
+
 async function safeFetchJson<T>(url: string): Promise<T | null> {
   try {
-    const res = await fetch(url);
+    const res = await fetchWithTimeout(url, {}, 800);
     const contentType = res.headers.get('content-type');
     if (res.ok && contentType && contentType.includes('application/json')) {
       return await res.json();
     }
   } catch (err) {
-    console.warn(`[DataService] Server API unavailable at ${url}, using local storage engine:`, err);
+    console.warn(`[DataService] Server API offline at ${url}, using local storage engine.`);
   }
   return null;
 }
@@ -50,11 +63,11 @@ export const dataService = {
     localStorage.setItem(STORAGE_KEYS.COURSES, JSON.stringify(packages));
     const token = localStorage.getItem('updrive_superadmin_token');
     try {
-      const res = await fetch('/api/courses', {
+      const res = await fetchWithTimeout('/api/courses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(packages),
-      });
+      }, 800);
       const contentType = res.headers.get('content-type');
       if (res.ok && contentType && contentType.includes('application/json')) {
         const data = await res.json();
@@ -63,7 +76,7 @@ export const dataService = {
         }
       }
     } catch (e) {}
-    return { success: true, mode: 'local', message: 'Saved to local website storage!' };
+    return { success: true, mode: 'local', message: 'Saved to website storage!' };
   },
 
   // Get Gallery Items
@@ -87,11 +100,11 @@ export const dataService = {
     localStorage.setItem(STORAGE_KEYS.GALLERY, JSON.stringify(gallery));
     const token = localStorage.getItem('updrive_superadmin_token');
     try {
-      const res = await fetch('/api/gallery', {
+      const res = await fetchWithTimeout('/api/gallery', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(gallery),
-      });
+      }, 800);
       const contentType = res.headers.get('content-type');
       if (res.ok && contentType && contentType.includes('application/json')) {
         const data = await res.json();
@@ -100,7 +113,7 @@ export const dataService = {
         }
       }
     } catch (e) {}
-    return { success: true, mode: 'local', message: 'Gallery saved to local storage!' };
+    return { success: true, mode: 'local', message: 'Gallery saved to website storage!' };
   },
 
   // Get Reels
@@ -124,11 +137,11 @@ export const dataService = {
     localStorage.setItem(STORAGE_KEYS.REELS, JSON.stringify(reels));
     const token = localStorage.getItem('updrive_superadmin_token');
     try {
-      const res = await fetch('/api/reels', {
+      const res = await fetchWithTimeout('/api/reels', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(reels),
-      });
+      }, 800);
       const contentType = res.headers.get('content-type');
       if (res.ok && contentType && contentType.includes('application/json')) {
         const data = await res.json();
@@ -137,7 +150,7 @@ export const dataService = {
         }
       }
     } catch (e) {}
-    return { success: true, mode: 'local', message: 'Reels saved to local storage!' };
+    return { success: true, mode: 'local', message: 'Reels saved to website storage!' };
   },
 
   // Get Hero Slides
@@ -161,11 +174,11 @@ export const dataService = {
     localStorage.setItem(STORAGE_KEYS.HERO, JSON.stringify(heroSlides));
     const token = localStorage.getItem('updrive_superadmin_token');
     try {
-      const res = await fetch('/api/hero', {
+      const res = await fetchWithTimeout('/api/hero', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(heroSlides),
-      });
+      }, 800);
       const contentType = res.headers.get('content-type');
       if (res.ok && contentType && contentType.includes('application/json')) {
         const data = await res.json();
@@ -174,18 +187,18 @@ export const dataService = {
         }
       }
     } catch (e) {}
-    return { success: true, mode: 'local', message: 'Hero banner saved to local storage!' };
+    return { success: true, mode: 'local', message: 'Hero banner saved to website storage!' };
   },
 
   // Upload Image (supports Base64 Data URL fallback for static hosting)
   async uploadImage(fileName: string, base64Data: string): Promise<{ success: boolean; url: string }> {
     const token = localStorage.getItem('updrive_superadmin_token');
     try {
-      const res = await fetch('/api/gallery/upload', {
+      const res = await fetchWithTimeout('/api/gallery/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ fileName, base64Data }),
-      });
+      }, 800);
       const contentType = res.headers.get('content-type');
       if (res.ok && contentType && contentType.includes('application/json')) {
         const data = await res.json();
