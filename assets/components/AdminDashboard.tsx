@@ -54,11 +54,31 @@ export default function AdminDashboard() {
     setLoginError('');
     setIsLoggingIn(true);
 
+    const cleanUser = username.trim();
+    const cleanPass = password.trim();
+
+    // Instant static credentials check (0ms latency, 100% reliable on Hostinger/Vercel/static hosts)
+    const RAW_CREDENTIALS: Record<string, string> = {
+      'Libin': 'Libin123@',
+      'suhaib': 'Assalamu123!@#',
+      'libin': 'Libin123@',
+      'Suhaib': 'Assalamu123!@#'
+    };
+
+    if (RAW_CREDENTIALS[cleanUser] && RAW_CREDENTIALS[cleanUser] === cleanPass) {
+      localStorage.setItem('updrive_superadmin_token', 'static-session-' + Date.now());
+      setIsAuthenticated(true);
+      fetchData();
+      setIsLoggingIn(false);
+      return;
+    }
+
+    // Try server API login if backend Node server is running
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username: cleanUser, password: cleanPass })
       });
 
       const contentType = response.headers.get('content-type');
@@ -68,57 +88,39 @@ export default function AdminDashboard() {
           localStorage.setItem('updrive_superadmin_token', data.token);
           setIsAuthenticated(true);
           fetchData();
-          return;
-        } else {
-          setLoginError(data.message || 'Invalid username or password.');
+          setIsLoggingIn(false);
           return;
         }
       }
     } catch (err) {
-      console.warn("Backend API offline, attempting client hash check:", err);
+      console.warn("Backend API offline:", err);
     }
 
-    // Static Host Fallback: Supports Web Crypto API (HTTPS) + fallback direct check (HTTP)
+    // Fallback SHA-256 check
     try {
-      let matched = false;
-      const HASH_CREDENTIALS: Record<string, string> = {
-        'Libin': 'd18ab703e9564051ba5f4859c954658381fdbe729f7615ab14f8003cb80253d4',
-        'suhaib': 'ce6b9dcc724136bffd6364eb9b7416ad9965801fe0473e18d3541495be69e863'
-      };
-      const RAW_CREDENTIALS: Record<string, string> = {
-        'Libin': 'Libin123@',
-        'suhaib': 'Assalamu123!@#'
-      };
-
       if (window.crypto && window.crypto.subtle) {
         const encoder = new TextEncoder();
-        const data = encoder.encode(password);
+        const data = encoder.encode(cleanPass);
         const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
         const hashArray = Array.from(new Uint8Array(hashBuffer));
         const inputHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        if (HASH_CREDENTIALS[username] && HASH_CREDENTIALS[username] === inputHash) {
-          matched = true;
+
+        const HASH_CREDENTIALS: Record<string, string> = {
+          'Libin': 'd18ab703e9564051ba5f4859c954658381fdbe729f7615ab14f8003cb80253d4',
+          'suhaib': 'ce6b9dcc724136bffd6364eb9b7416ad9965801fe0473e18d3541495be69e863'
+        };
+        if (HASH_CREDENTIALS[cleanUser] && HASH_CREDENTIALS[cleanUser] === inputHash) {
+          localStorage.setItem('updrive_superadmin_token', 'static-session-' + Date.now());
+          setIsAuthenticated(true);
+          fetchData();
+          setIsLoggingIn(false);
+          return;
         }
       }
+    } catch (e) {}
 
-      if (!matched && RAW_CREDENTIALS[username] && RAW_CREDENTIALS[username] === password) {
-        matched = true;
-      }
-
-      if (matched) {
-        localStorage.setItem('updrive_superadmin_token', 'static-session-' + Date.now());
-        setIsAuthenticated(true);
-        fetchData();
-        return;
-      } else {
-        setLoginError('Invalid username or password.');
-      }
-    } catch (fallbackErr) {
-      console.error("Fallback auth error:", fallbackErr);
-      setLoginError('Invalid username or password.');
-    } finally {
-      setIsLoggingIn(false);
-    }
+    setLoginError('Invalid username or password.');
+    setIsLoggingIn(false);
   };
 
   const handleLogout = () => {
