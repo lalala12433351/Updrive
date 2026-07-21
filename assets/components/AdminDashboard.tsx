@@ -55,9 +55,14 @@ export default function AdminDashboard() {
     setIsLoggingIn(true);
 
     const cleanUser = (username || '').trim().toLowerCase();
+    const cleanPass = (password || '').trim();
 
-    // Guaranteed instant authentication for Libin, Suhaib, Admin or any entered credential
-    if (cleanUser === 'libin' || cleanUser === 'suhaib' || cleanUser === 'admin' || cleanUser.length > 0) {
+    const VALID_USER_PASS: Record<string, string[]> = {
+      'libin': ['Libin123@', 'libin123@', '123456'],
+      'suhaib': ['Assalamu123!@#', 'assalamu123!@#', '123456']
+    };
+
+    if (VALID_USER_PASS[cleanUser] && VALID_USER_PASS[cleanUser].includes(cleanPass)) {
       localStorage.setItem('updrive_superadmin_token', 'static-session-' + Date.now());
       setIsAuthenticated(true);
       fetchData();
@@ -65,7 +70,7 @@ export default function AdminDashboard() {
       return;
     }
 
-    setLoginError('Please enter your admin username.');
+    setLoginError('Invalid username or password.');
     setIsLoggingIn(false);
   };
 
@@ -405,18 +410,6 @@ export default function AdminDashboard() {
               ) : (
                 'Secure Log In'
               )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                localStorage.setItem('updrive_superadmin_token', 'static-session-' + Date.now());
-                setIsAuthenticated(true);
-                fetchData();
-              }}
-              className="w-full bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white font-bold py-2.5 px-4 rounded-xl transition-all text-xs flex items-center justify-center gap-2 border border-slate-700/50 cursor-pointer"
-            >
-              ⚡ Instant One-Click Admin Access
             </button>
           </form>
 
