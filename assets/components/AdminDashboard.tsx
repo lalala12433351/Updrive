@@ -77,20 +77,34 @@ export default function AdminDashboard() {
       console.warn("Backend API offline, attempting client hash check:", err);
     }
 
-    // Static Host Fallback: SHA-256 password hash comparison
+    // Static Host Fallback: Supports Web Crypto API (HTTPS) + fallback direct check (HTTP)
     try {
-      const encoder = new TextEncoder();
-      const data = encoder.encode(password);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const inputHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-      const CREDENTIALS: Record<string, string> = {
+      let matched = false;
+      const HASH_CREDENTIALS: Record<string, string> = {
         'Libin': 'd18ab703e9564051ba5f4859c954658381fdbe729f7615ab14f8003cb80253d4',
         'suhaib': 'ce6b9dcc724136bffd6364eb9b7416ad9965801fe0473e18d3541495be69e863'
       };
+      const RAW_CREDENTIALS: Record<string, string> = {
+        'Libin': 'Libin123@',
+        'suhaib': 'Assalamu123!@#'
+      };
 
-      if (CREDENTIALS[username] && CREDENTIALS[username] === inputHash) {
+      if (window.crypto && window.crypto.subtle) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password);
+        const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const inputHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        if (HASH_CREDENTIALS[username] && HASH_CREDENTIALS[username] === inputHash) {
+          matched = true;
+        }
+      }
+
+      if (!matched && RAW_CREDENTIALS[username] && RAW_CREDENTIALS[username] === password) {
+        matched = true;
+      }
+
+      if (matched) {
         localStorage.setItem('updrive_superadmin_token', 'static-session-' + Date.now());
         setIsAuthenticated(true);
         fetchData();
@@ -99,7 +113,8 @@ export default function AdminDashboard() {
         setLoginError('Invalid username or password.');
       }
     } catch (fallbackErr) {
-      setLoginError('Failed to connect to backend.');
+      console.error("Fallback auth error:", fallbackErr);
+      setLoginError('Invalid username or password.');
     } finally {
       setIsLoggingIn(false);
     }
