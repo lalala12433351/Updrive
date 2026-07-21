@@ -29,5 +29,5 @@ RewriteRule ^uploads/(.*)$ uploads/$1 [L]
   RewriteRule ^api/(.*)$ http://127.0.0.1:5000/api/$1 [P,L]
 </IfModule>
 
-# Everything else → serve dist/index.html (SPA fallback)
-RewriteRule ^ dist/index.html [L]
+# Everything else → serve index.html (SPA fallback)
+RewriteRule ^ index.html [L]
