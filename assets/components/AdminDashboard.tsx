@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Settings, Plus, Trash2, LogOut, Globe, Lock, FileText, Image as ImageIcon, Upload, Check, Loader2, Save, X, Play, Star, Briefcase } from 'lucide-react';
-import { PricingPackage, Testimonial, JobOpening } from '../types';
+import { PricingPackage, Testimonial, JobOpening, BlogPost } from '../types';
 import { GalleryItem } from './Gallery';
 import { InstagramReel } from './Testimonials';
 import { HeroSlide } from './Hero';
@@ -13,13 +13,14 @@ export default function AdminDashboard() {
   const [loginError, setLoginError] = useState<string>('');
   const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
 
-  const [activeTab, setActiveTab] = useState<'courses' | 'gallery' | 'reels' | 'hero' | 'reviews' | 'jobs'>('courses');
+  const [activeTab, setActiveTab] = useState<'courses' | 'gallery' | 'reels' | 'hero' | 'reviews' | 'jobs' | 'blog'>('courses');
   const [packages, setPackages] = useState<PricingPackage[]>([]);
   const [gallery, setGallery] = useState<GalleryItem[]>([]);
   const [reels, setReels] = useState<InstagramReel[]>([]);
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([]);
   const [reviews, setReviews] = useState<Testimonial[]>([]);
   const [jobs, setJobs] = useState<JobOpening[]>([]);
+  const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [isLoadingData, setIsLoadingData] = useState<boolean>(false);
 
   // Form saving states
@@ -29,6 +30,7 @@ export default function AdminDashboard() {
   const [isSavingHero, setIsSavingHero] = useState<boolean>(false);
   const [isSavingReviews, setIsSavingReviews] = useState<boolean>(false);
   const [isSavingJobs, setIsSavingJobs] = useState<boolean>(false);
+  const [isSavingBlogs, setIsSavingBlogs] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isFetchingCoverIdx, setIsFetchingCoverIdx] = useState<number | null>(null);
 
@@ -104,6 +106,9 @@ export default function AdminDashboard() {
 
       const jobsData = await dataService.getJobs();
       setJobs(jobsData);
+
+      const blogsData = await dataService.getBlogs();
+      setBlogs(blogsData);
     } catch (err) {
       console.error('Error fetching admin data:', err);
       showToast('error', 'Failed to load database records.');
@@ -474,6 +479,114 @@ export default function AdminDashboard() {
       setIsSavingJobs(false);
     }
   };
+
+  // Blog (SEO) management helpers
+  const handleAddBlogPost = () => {
+    const newPost: BlogPost = {
+      id: 'blog-' + Date.now(),
+      slug: 'new-blog-post-' + Date.now(),
+      title: 'New Article Title',
+      metaTitle: 'New Article Title | UpDrive',
+      metaDescription: 'Read this dynamic new article from UpDrive.',
+      coverImage: '',
+      createdAt: new Date().toISOString().split('T')[0],
+      isPublished: false,
+      blocks: [
+        { id: 'block-' + Date.now() + '-1', type: 'paragraph', content: 'Type your introduction paragraph here...' }
+      ]
+    };
+    setBlogs([...blogs, newPost]);
+  };
+
+  const handleDeleteBlogPost = (id: string) => {
+    setBlogs(blogs.filter(b => b.id !== id));
+  };
+
+  const handleBlogFieldChange = (index: number, field: keyof BlogPost, value: any) => {
+    const updated = [...blogs];
+    updated[index] = { ...updated[index], [field]: value } as BlogPost;
+    setBlogs(updated);
+  };
+
+  const handleAddBlogBlock = (postIndex: number, type: 'paragraph' | 'h1' | 'h2' | 'h3' | 'list' | 'image' | 'video') => {
+    const updated = [...blogs];
+    const newBlock = {
+      id: 'block-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+      type,
+      content: type === 'list' ? '- Bullet point 1\n- Bullet point 2' : 'Enter block content...',
+      mediaUrl: ''
+    };
+    updated[postIndex].blocks = [...updated[postIndex].blocks, newBlock];
+    setBlogs(updated);
+  };
+
+  const handleDeleteBlogBlock = (postIndex: number, blockIndex: number) => {
+    const updated = [...blogs];
+    updated[postIndex].blocks = updated[postIndex].blocks.filter((_, idx) => idx !== blockIndex);
+    setBlogs(updated);
+  };
+
+  const handleBlogBlockFieldChange = (postIndex: number, blockIndex: number, field: 'content' | 'mediaUrl', value: string) => {
+    const updated = [...blogs];
+    const updatedBlocks = [...updated[postIndex].blocks];
+    updatedBlocks[blockIndex] = { ...updatedBlocks[blockIndex], [field]: value };
+    updated[postIndex].blocks = updatedBlocks;
+    setBlogs(updated);
+  };
+
+  const handleMoveBlogBlock = (postIndex: number, blockIndex: number, direction: 'up' | 'down') => {
+    const updated = [...blogs];
+    const blocks = [...updated[postIndex].blocks];
+    if (direction === 'up' && blockIndex > 0) {
+      const temp = blocks[blockIndex];
+      blocks[blockIndex] = blocks[blockIndex - 1];
+      blocks[blockIndex - 1] = temp;
+    } else if (direction === 'down' && blockIndex < blocks.length - 1) {
+      const temp = blocks[blockIndex];
+      blocks[blockIndex] = blocks[blockIndex + 1];
+      blocks[blockIndex + 1] = temp;
+    }
+    updated[postIndex].blocks = blocks;
+    setBlogs(updated);
+  };
+
+  const handleUploadBlogMedia = async (e: React.ChangeEvent<HTMLInputElement>, postIndex: number, blockIndex: number | null) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = async () => {
+      try {
+        const base64Data = reader.result as string;
+        const uploadRes = await dataService.uploadImage(file.name, base64Data);
+        if (uploadRes.success && uploadRes.url) {
+          if (blockIndex === null) {
+            handleBlogFieldChange(postIndex, 'coverImage', uploadRes.url);
+          } else {
+            handleBlogBlockFieldChange(postIndex, blockIndex, 'mediaUrl', uploadRes.url);
+          }
+          showToast('success', 'Media uploaded successfully!');
+        } else {
+          showToast('error', 'Media upload failed.');
+        }
+      } catch (err) {
+        showToast('error', 'Error processing media file.');
+      }
+    };
+  };
+
+  const handleSaveBlogs = async () => {
+    setIsSavingBlogs(true);
+    try {
+      const result = await dataService.saveBlogs(blogs);
+      showToast('success', result.message || 'Blog posts saved successfully!');
+    } catch (err) {
+      showToast('error', 'Failed to save blog posts.');
+    } finally {
+      setIsSavingBlogs(false);
+    }
+  };
   // Non-authenticated view (Login form)
   if (!isAuthenticated) {
     return (
@@ -687,6 +800,18 @@ export default function AdminDashboard() {
           >
             <Briefcase className="h-4.5 w-4.5" />
             Manage Careers
+          </button>
+
+          <button
+            onClick={() => setActiveTab('blog')}
+            className={`py-3.5 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
+              activeTab === 'blog'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <FileText className="h-4.5 w-4.5" />
+            Manage Blog
           </button>
         </div>
 
@@ -1746,6 +1871,349 @@ export default function AdminDashboard() {
                       <>
                         <Save className="h-4.5 w-4.5" />
                         Save Careers Info
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Blog Posts (SEO) Management */}
+            {activeTab === 'blog' && (
+              <div className="space-y-6">
+                <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-black text-slate-900 tracking-tight">SEO Blog Article Manager</h3>
+                    <p className="text-slate-555 text-xs font-semibold">Compose rich-text SEO blog posts, headings (H1/H2), paragraphs, lists, and upload custom photos/videos.</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handleAddBlogPost}
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 px-4 rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                    >
+                      <Plus className="h-4 w-4" />
+                      New Blog Post
+                    </button>
+                    
+                    <button
+                      onClick={handleSaveBlogs}
+                      disabled={isSavingBlogs}
+                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-extrabold py-2.5 px-4.5 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-md shadow-blue-500/10 cursor-pointer"
+                    >
+                      {isSavingBlogs ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4" />
+                          Save Blog Posts
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-8">
+                  {blogs.map((post, postIdx) => (
+                    <div key={post.id} className="bg-white border border-slate-200 rounded-3xl p-6 relative shadow-xs hover:border-slate-350 transition-colors space-y-6">
+                      
+                      {/* Post Toolbar */}
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-4 gap-3 text-left">
+                        <div className="flex items-center gap-4">
+                          <span className="inline-block px-2.5 py-1 text-xxs font-black text-blue-600 bg-blue-50 rounded-lg uppercase tracking-wider">
+                            Post ID: {post.id}
+                          </span>
+                          <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-700">
+                            <input
+                              type="checkbox"
+                              checked={post.isPublished}
+                              onChange={(e) => handleBlogFieldChange(postIdx, 'isPublished', e.target.checked)}
+                              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
+                            />
+                            Published (Visible on site)
+                          </label>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteBlogPost(post.id)}
+                          className="text-xs font-bold text-red-655 hover:text-red-750 px-3.5 py-1.5 border border-red-155 hover:bg-red-50 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Delete Post
+                        </button>
+                      </div>
+
+                      {/* Main SEO Metadata inputs */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+                        <div className="space-y-1">
+                          <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">Article Title *</label>
+                          <input
+                            type="text"
+                            value={post.title}
+                            onChange={(e) => handleBlogFieldChange(postIdx, 'title', e.target.value)}
+                            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-blue-500"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">URL Slug (lowercase hyphenated) *</label>
+                          <input
+                            type="text"
+                            value={post.slug}
+                            onChange={(e) => handleBlogFieldChange(postIdx, 'slug', e.target.value.toLowerCase().replace(/\s+/g, '-'))}
+                            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-blue-500"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">SEO Meta Title (recommended 50-60 chars) *</label>
+                          <input
+                            type="text"
+                            value={post.metaTitle}
+                            onChange={(e) => handleBlogFieldChange(postIdx, 'metaTitle', e.target.value)}
+                            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-blue-500"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">SEO Meta Description (recommended 150-160 chars) *</label>
+                          <input
+                            type="text"
+                            value={post.metaDescription}
+                            onChange={(e) => handleBlogFieldChange(postIdx, 'metaDescription', e.target.value)}
+                            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-blue-500"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">Date Created *</label>
+                          <input
+                            type="date"
+                            value={post.createdAt}
+                            onChange={(e) => handleBlogFieldChange(postIdx, 'createdAt', e.target.value)}
+                            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-blue-500"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">Article Cover Image</label>
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              id={`upload-cover-${post.id}`}
+                              className="hidden"
+                              onChange={(e) => handleUploadBlogMedia(e, postIdx, null)}
+                            />
+                            <label
+                              htmlFor={`upload-cover-${post.id}`}
+                              className="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold py-2 px-4 rounded-xl text-xs cursor-pointer transition-colors shadow-xs"
+                            >
+                              <Upload className="h-4 w-4 inline mr-1" />
+                              Upload Cover
+                            </label>
+                            {post.coverImage && (
+                              <span className="text-[10px] text-emerald-650 font-bold uppercase tracking-wider flex items-center gap-1">
+                                <Check className="h-3.5 w-3.5" />
+                                Cover Image Uploaded
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Blocks Composer */}
+                      <div className="border-t border-slate-100 pt-5 space-y-4 text-left">
+                        <div className="flex items-center justify-between border-b border-slate-50 pb-2">
+                          <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-widest">Article Body Content Blocks</h4>
+                          <span className="text-xxs text-slate-400 font-bold uppercase">Arrange, edit, or upload blocks</span>
+                        </div>
+
+                        <div className="space-y-3">
+                          {post.blocks && post.blocks.map((block, blockIdx) => (
+                            <div key={block.id} className="bg-slate-50/50 border border-slate-150 rounded-2xl p-4 space-y-3 relative hover:border-slate-350 transition-colors">
+                              {/* Block Header Toolbar */}
+                              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="w-5 h-5 bg-slate-200 text-slate-600 rounded-full flex items-center justify-center text-[10px] font-bold">
+                                    {blockIdx + 1}
+                                  </span>
+                                  <span className="text-xxs font-black text-slate-400 uppercase tracking-widest">
+                                    Block: {block.type}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleMoveBlogBlock(postIdx, blockIdx, 'up')}
+                                    className="p-1 text-slate-500 hover:text-blue-650 hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
+                                    title="Move Up"
+                                  >
+                                    ▲
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleMoveBlogBlock(postIdx, blockIdx, 'down')}
+                                    className="p-1 text-slate-500 hover:text-blue-655 hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
+                                    title="Move Down"
+                                  >
+                                    ▼
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteBlogBlock(postIdx, blockIdx)}
+                                    className="p-1 text-red-500 hover:text-red-750 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+                                    title="Delete Block"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Block Type Renderers */}
+                              {['paragraph', 'h1', 'h2', 'h3', 'list'].includes(block.type) ? (
+                                <div className="space-y-1">
+                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                                    {block.type === 'list' ? 'Bullet list items (use newlines starting with -)' : `${block.type} text content`}
+                                  </label>
+                                  <textarea
+                                    rows={block.type === 'paragraph' ? 3 : 1}
+                                    value={block.content}
+                                    onChange={(e) => handleBlogBlockFieldChange(postIdx, blockIdx, 'content', e.target.value)}
+                                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-blue-500 resize-none leading-relaxed"
+                                    placeholder={`Type your ${block.type} content...`}
+                                  />
+                                </div>
+                              ) : block.type === 'image' || block.type === 'video' ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                  <div className="space-y-2">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                                      Upload block {block.type} file
+                                    </label>
+                                    <div className="flex items-center gap-2">
+                                      <input
+                                        type="file"
+                                        accept={block.type === 'image' ? 'image/*' : 'video/*'}
+                                        id={`upload-block-media-${post.id}-${block.id}`}
+                                        className="hidden"
+                                        onChange={(e) => handleUploadBlogMedia(e, postIdx, blockIdx)}
+                                      />
+                                      <label
+                                        htmlFor={`upload-block-media-${post.id}-${block.id}`}
+                                        className="bg-white hover:bg-slate-100 border border-slate-200 text-slate-750 font-bold py-1.5 px-3.5 rounded-xl text-[10px] cursor-pointer transition-colors shadow-xxs"
+                                      >
+                                        <Upload className="h-3 w-3 inline mr-1" />
+                                        Select File
+                                      </label>
+                                      {block.mediaUrl && (
+                                        <span className="text-[9px] text-emerald-600 font-bold uppercase tracking-wider">
+                                          ✓ File Set
+                                        </span>
+                                      )}
+                                    </div>
+                                    {block.mediaUrl && (
+                                      <div className="mt-1 max-w-[150px] rounded-lg overflow-hidden border border-slate-200">
+                                        {block.type === 'image' ? (
+                                          <img src={block.mediaUrl} alt="" className="w-full h-auto object-cover max-h-[80px]" />
+                                        ) : (
+                                          <video src={block.mediaUrl} className="w-full max-h-[80px]" />
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                                      Optional caption text
+                                    </label>
+                                    <input
+                                      type="text"
+                                      value={block.content}
+                                      onChange={(e) => handleBlogBlockFieldChange(postIdx, blockIdx, 'content', e.target.value)}
+                                      className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-blue-500"
+                                      placeholder="E.g. A female driver smiles behind the wheel"
+                                    />
+                                  </div>
+                                </div>
+                              ) : null}
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Add Block Bar */}
+                        <div className="bg-slate-100/50 border border-dashed border-slate-200 rounded-2xl p-4 flex flex-wrap items-center justify-center gap-2">
+                          <span className="text-[10px] font-black text-slate-455 uppercase tracking-wider mr-2">Insert Block:</span>
+                          <button
+                            type="button"
+                            onClick={() => handleAddBlogBlock(postIdx, 'h1')}
+                            className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-1 px-3 rounded-lg text-[10px] cursor-pointer"
+                          >
+                            + H1 Heading
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAddBlogBlock(postIdx, 'h2')}
+                            className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-1 px-3 rounded-lg text-[10px] cursor-pointer"
+                          >
+                            + H2 Heading
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAddBlogBlock(postIdx, 'h3')}
+                            className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-1 px-3 rounded-lg text-[10px] cursor-pointer"
+                          >
+                            + H3 Heading
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAddBlogBlock(postIdx, 'paragraph')}
+                            className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-1 px-3 rounded-lg text-[10px] cursor-pointer"
+                          >
+                            + Paragraph
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAddBlogBlock(postIdx, 'list')}
+                            className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-1 px-3 rounded-lg text-[10px] cursor-pointer"
+                          >
+                            + Bullet List
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAddBlogBlock(postIdx, 'image')}
+                            className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-1 px-3 rounded-lg text-[10px] cursor-pointer"
+                          >
+                            + Photo Block
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAddBlogBlock(postIdx, 'video')}
+                            className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-1 px-3 rounded-lg text-[10px] cursor-pointer"
+                          >
+                            + Video Block
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex justify-end pt-4">
+                  <button
+                    onClick={handleSaveBlogs}
+                    disabled={isSavingBlogs}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-extrabold py-3 px-8 rounded-xl text-sm flex items-center gap-1.5 transition-all shadow-lg shadow-blue-500/10 cursor-pointer"
+                  >
+                    {isSavingBlogs ? (
+                      <>
+                        <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4.5 w-4.5" />
+                        Save Blog Posts
                       </>
                     )}
                   </button>

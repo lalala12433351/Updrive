@@ -121,6 +121,12 @@ export default function Footer({ onShowTerms }: FooterProps) {
             >
               Careers
             </a>
+            <a 
+              href="/blog"
+              className="hover:text-slate-300 transition-colors cursor-pointer"
+            >
+              Blog / News
+            </a>
             <span className="hover:text-slate-300 transition-colors cursor-pointer">Student Safety Code</span>
           </div>
         </div>

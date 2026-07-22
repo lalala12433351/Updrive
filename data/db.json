@@ -217,5 +217,64 @@
       "requirements": "- 1+ years experience in customer service or tele-sales\n- Fluent in English and Malayalam/Tamil/Kannada\n- Comfort working with spreadsheet trackers and call routing systems",
       "isActive": true
     }
+  ],
+  "blogs": [
+    {
+      "id": "blog-1",
+      "slug": "5-tips-overcome-driving-anxiety",
+      "title": "5 Practical Tips to Overcome Driving Anxiety",
+      "metaTitle": "How to Overcome Driving Anxiety: 5 Easy Tips | UpDrive",
+      "metaDescription": "Struggling with nervousness behind the wheel? Discover 5 proven tips from UpDrive's professional driving instructors to boost your road confidence today.",
+      "coverImage": "",
+      "createdAt": "2026-07-22",
+      "isPublished": true,
+      "blocks": [
+        {
+          "id": "b1",
+          "type": "paragraph",
+          "content": "Feeling nervous before driving or navigating heavy traffic is extremely common. Many new learners, and even experienced drivers after a long break, experience racing thoughts or sweaty palms. The good news is that driving confidence is a skill that can be built step by step."
+        },
+        {
+          "id": "b2",
+          "type": "h2",
+          "content": "1. Start in Low-Traffic Environments"
+        },
+        {
+          "id": "b3",
+          "type": "paragraph",
+          "content": "Do not rush straight into busy highways or narrow market lanes. Practice starting and stopping in empty parking lots or quiet residential loops during early morning hours. Familiarity breeds confidence."
+        },
+        {
+          "id": "b4",
+          "type": "h2",
+          "content": "2. Practice Controlled Breathing Techniques"
+        },
+        {
+          "id": "b5",
+          "type": "paragraph",
+          "content": "When panic starts to set in, our breathing becomes shallow. Take slow, deep breaths—inhale for four seconds, hold for four seconds, and exhale for four seconds. This triggers a relaxation response in your nervous system."
+        },
+        {
+          "id": "b6",
+          "type": "h2",
+          "content": "3. Work With a Supportive Trainer"
+        },
+        {
+          "id": "b7",
+          "type": "paragraph",
+          "content": "Family members mean well, but they can sometimes pass their own anxiety on to you. Professional instructors are trained to remain perfectly calm under pressure. UpDrive trainers specialise in supporting anxious learners without shouting or irritation."
+        },
+        {
+          "id": "b8",
+          "type": "h2",
+          "content": "Summary of Confidence Builders:"
+        },
+        {
+          "id": "b9",
+          "type": "list",
+          "content": "- Master basic controls before handling complex traffic scenarios\n- Use a dedicated 'L' sign on your front and rear glass\n- Practice during dry daylight hours first\n- Choose positive, patient instructors who align with your pace"
+        }
+      ]
+    }
   ]
 }

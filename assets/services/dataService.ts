@@ -1,4 +1,4 @@
-import { PricingPackage, Testimonial, JobOpening } from '../types';
+import { PricingPackage, Testimonial, JobOpening, BlogPost } from '../types';
 import { GalleryItem } from '../components/Gallery';
 import { InstagramReel } from '../components/Testimonials';
 import { HeroSlide } from '../components/Hero';
@@ -13,6 +13,7 @@ const STORAGE_KEYS = {
   HERO: 'updrive_db_hero',
   REVIEWS: 'updrive_db_reviews',
   JOBS: 'updrive_db_jobs',
+  BLOGS: 'updrive_db_blogs',
 };
 
 // Safe localStorage wrapper to prevent QuotaExceededError crashes
@@ -321,6 +322,43 @@ export const dataService = {
       }
     } catch (e) {}
     return { success: true, mode: 'local', message: 'Careers/Jobs saved to website storage!' };
+  },
+
+  // Get Blog Posts (SEO)
+  async getBlogs(): Promise<BlogPost[]> {
+    const serverData = await safeFetchJson<BlogPost[]>('/api/blogs');
+    if (serverData && Array.isArray(serverData) && serverData.length > 0) {
+      safeSetLocalStorage(STORAGE_KEYS.BLOGS, JSON.stringify(serverData));
+      return serverData;
+    }
+    const local = localStorage.getItem(STORAGE_KEYS.BLOGS);
+    if (local) {
+      try { return JSON.parse(local); } catch (e) {}
+    }
+    const defaultData = (dbData.blogs || []) as BlogPost[];
+    safeSetLocalStorage(STORAGE_KEYS.BLOGS, JSON.stringify(defaultData));
+    return defaultData;
+  },
+
+  // Save Blog Posts (SEO)
+  async saveBlogs(blogs: BlogPost[]): Promise<{ success: boolean; mode: 'server' | 'local'; message?: string }> {
+    safeSetLocalStorage(STORAGE_KEYS.BLOGS, JSON.stringify(blogs));
+    const token = localStorage.getItem('updrive_superadmin_token');
+    try {
+      const res = await fetchWithTimeout('/api/blogs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(blogs),
+      }, 800);
+      const contentType = res.headers.get('content-type');
+      if (res.ok && contentType && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (data.success) {
+          return { success: true, mode: 'server', message: 'Blog posts saved to server!' };
+        }
+      }
+    } catch (e) {}
+    return { success: true, mode: 'local', message: 'Blog posts saved to website storage!' };
   },
 
   // Upload Image (supports compressed Base64 Data URL fallback for static hosting)

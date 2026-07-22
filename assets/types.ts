@@ -48,3 +48,22 @@ export interface JobOpening {
   requirements: string;
   isActive: boolean;
 }
+
+export interface BlogBlock {
+  id: string;
+  type: 'paragraph' | 'h1' | 'h2' | 'h3' | 'list' | 'image' | 'video';
+  content: string;
+  mediaUrl?: string;
+}
+
+export interface BlogPost {
+  id: string;
+  slug: string;
+  title: string;
+  metaTitle: string;
+  metaDescription: string;
+  coverImage: string;
+  blocks: BlogBlock[];
+  createdAt: string;
+  isPublished: boolean;
+}

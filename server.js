@@ -346,6 +346,27 @@ app.post('/api/jobs', checkAuth, async (req, res) => {
   }
 });
 
+// Blog APIs
+app.get('/api/blogs', async (req, res) => {
+  const db = await readDB();
+  res.json(db.blogs || []);
+});
+
+app.post('/api/blogs', checkAuth, async (req, res) => {
+  const newBlogs = req.body;
+  if (!Array.isArray(newBlogs)) {
+    return res.status(400).json({ success: false, message: 'Invalid blogs data format.' });
+  }
+  const db = await readDB();
+  db.blogs = newBlogs;
+  const success = await writeDB(db);
+  if (success) {
+    res.json({ success: true, message: 'Blog posts updated successfully.' });
+  } else {
+    res.status(500).json({ success: false, message: 'Failed to write database.' });
+  }
+});
+
 // Serve the index.html for all other routes (Single Page App routing)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));

@@ -12,6 +12,7 @@ import TermsModal from './components/TermsModal';
 import Gallery, { GalleryItem } from './components/Gallery';
 import AdminDashboard from './components/AdminDashboard';
 import CareersPage from './components/CareersPage';
+import BlogPage from './components/BlogPage';
 import { PricingPackage } from './types';
 import { dataService } from './services/dataService';
 
@@ -20,9 +21,10 @@ export default function App() {
   const [selectedLocation, setSelectedLocation] = useState<string>('kerala');
   const [showTermsModal, setShowTermsModal] = useState<boolean>(false);
 
-  // State-based routing for /admin and /careers view
+  // State-based routing for /admin, /careers and /blog view
   const [isAdminView, setIsAdminView] = useState<boolean>(false);
   const [isCareersView, setIsCareersView] = useState<boolean>(false);
+  const [isBlogView, setIsBlogView] = useState<boolean>(false);
   const [packages, setPackages] = useState<PricingPackage[]>([]);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -34,11 +36,17 @@ export default function App() {
     const isCareers = window.location.pathname.endsWith('/careers') || 
                       window.location.hash === '#careers' || 
                       window.location.search.includes('careers');
+    const isBlog = window.location.pathname.includes('/blog') || 
+                   window.location.hash === '#blog' || 
+                   window.location.search.includes('blog');
     if (isSuperAdmin) {
       setIsAdminView(true);
       setIsLoading(false);
     } else if (isCareers) {
       setIsCareersView(true);
+      setIsLoading(false);
+    } else if (isBlog) {
+      setIsBlogView(true);
       setIsLoading(false);
     } else {
       // Fetch dynamic content on mount
@@ -83,6 +91,10 @@ export default function App() {
 
   if (isCareersView) {
     return <CareersPage />;
+  }
+
+  if (isBlogView) {
+    return <BlogPage />;
   }
 
   return (
