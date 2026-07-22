@@ -854,7 +854,7 @@ export default function AdminDashboard() {
                 </div>
                 <div>
                   <h3 className="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition-colors">Blog / SEO</h3>
-                  <p className="text-xxs text-slate-500 font-semibold mt-1">Write SEO blog posts with the Gutenberg editor</p>
+                  <p className="text-xxs text-slate-500 font-semibold mt-1">Write SEO blog posts with the block editor</p>
                 </div>
               </button>
             </div>
@@ -2065,8 +2065,8 @@ export default function AdminDashboard() {
                           </button>
                           
                           <div className="flex items-center gap-3">
-                            <span className="text-xxs font-black text-slate-400 uppercase tracking-widest bg-slate-50 border border-slate-150 px-2.5 py-1 rounded-lg">
-                              WordPress Gutenberg view
+                            <span className={`text-xxs font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border ${post.isPublished ? 'text-emerald-600 bg-emerald-50 border-emerald-150' : 'text-slate-500 bg-slate-50 border-slate-150'}`}>
+                              {post.isPublished ? '● Published' : '● Draft'}
                             </span>
                             <button
                               onClick={handleSaveBlogs}
