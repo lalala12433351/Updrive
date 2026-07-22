@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Settings, Plus, Trash2, LogOut, Globe, Lock, FileText, Image as ImageIcon, Upload, Check, Loader2, Save, X, Play, Star, Briefcase } from 'lucide-react';
+import { Settings, Plus, Trash2, LogOut, Globe, Lock, FileText, Image as ImageIcon, Upload, Check, Loader2, Save, X, Play, Star, Briefcase, ArrowLeft } from 'lucide-react';
 import { PricingPackage, Testimonial, JobOpening, BlogPost } from '../types';
 import { GalleryItem } from './Gallery';
 import { InstagramReel } from './Testimonials';
@@ -21,6 +21,7 @@ export default function AdminDashboard() {
   const [reviews, setReviews] = useState<Testimonial[]>([]);
   const [jobs, setJobs] = useState<JobOpening[]>([]);
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [isLoadingData, setIsLoadingData] = useState<boolean>(false);
 
   // Form saving states
@@ -482,8 +483,9 @@ export default function AdminDashboard() {
 
   // Blog (SEO) management helpers
   const handleAddBlogPost = () => {
+    const newId = 'blog-' + Date.now();
     const newPost: BlogPost = {
-      id: 'blog-' + Date.now(),
+      id: newId,
       slug: 'new-blog-post-' + Date.now(),
       title: 'New Article Title',
       metaTitle: 'New Article Title | UpDrive',
@@ -496,6 +498,7 @@ export default function AdminDashboard() {
       ]
     };
     setBlogs([...blogs, newPost]);
+    setEditingPostId(newId);
   };
 
   const handleDeleteBlogPost = (id: string) => {
@@ -517,6 +520,20 @@ export default function AdminDashboard() {
       mediaUrl: ''
     };
     updated[postIndex].blocks = [...updated[postIndex].blocks, newBlock];
+    setBlogs(updated);
+  };
+
+  const handleAddBlogBlockAtIndex = (postIndex: number, insertIndex: number, type: 'paragraph' | 'h1' | 'h2' | 'h3' | 'list' | 'image' | 'video') => {
+    const updated = [...blogs];
+    const newBlock = {
+      id: 'block-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+      type,
+      content: type === 'list' ? '- Bullet point 1\n- Bullet point 2' : 'Enter block content...',
+      mediaUrl: ''
+    };
+    const currentBlocks = [...updated[postIndex].blocks];
+    currentBlocks.splice(insertIndex, 0, newBlock);
+    updated[postIndex].blocks = currentBlocks;
     setBlogs(updated);
   };
 
@@ -1881,343 +1898,524 @@ export default function AdminDashboard() {
             {/* Blog Posts (SEO) Management */}
             {activeTab === 'blog' && (
               <div className="space-y-6">
-                <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-black text-slate-900 tracking-tight">SEO Blog Article Manager</h3>
-                    <p className="text-slate-555 text-xs font-semibold">Compose rich-text SEO blog posts, headings (H1/H2), paragraphs, lists, and upload custom photos/videos.</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={handleAddBlogPost}
-                      className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 px-4 rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer"
-                    >
-                      <Plus className="h-4 w-4" />
-                      New Blog Post
-                    </button>
-                    
-                    <button
-                      onClick={handleSaveBlogs}
-                      disabled={isSavingBlogs}
-                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-extrabold py-2.5 px-4.5 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-md shadow-blue-500/10 cursor-pointer"
-                    >
-                      {isSavingBlogs ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="h-4 w-4" />
-                          Save Blog Posts
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="space-y-8">
-                  {blogs.map((post, postIdx) => (
-                    <div key={post.id} className="bg-white border border-slate-200 rounded-3xl p-6 relative shadow-xs hover:border-slate-350 transition-colors space-y-6">
-                      
-                      {/* Post Toolbar */}
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-4 gap-3 text-left">
-                        <div className="flex items-center gap-4">
-                          <span className="inline-block px-2.5 py-1 text-xxs font-black text-blue-600 bg-blue-50 rounded-lg uppercase tracking-wider">
-                            Post ID: {post.id}
-                          </span>
-                          <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-700">
-                            <input
-                              type="checkbox"
-                              checked={post.isPublished}
-                              onChange={(e) => handleBlogFieldChange(postIdx, 'isPublished', e.target.checked)}
-                              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
-                            />
-                            Published (Visible on site)
-                          </label>
+                
+                {/* 1. WordPress style Posts Dashboard List (when not editing a post) */}
+                {editingPostId === null ? (
+                  <div className="space-y-6">
+                    <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-xl font-black text-slate-900 tracking-tight">Posts</h3>
+                          <button
+                            onClick={handleAddBlogPost}
+                            className="bg-blue-50 hover:bg-blue-100 text-blue-650 font-bold py-1 px-3.5 rounded-xl text-xs border border-blue-150 transition-all cursor-pointer"
+                          >
+                            Add New Post
+                          </button>
                         </div>
-                        <button
-                          onClick={() => handleDeleteBlogPost(post.id)}
-                          className="text-xs font-bold text-red-655 hover:text-red-750 px-3.5 py-1.5 border border-red-155 hover:bg-red-50 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          Delete Post
-                        </button>
+                        <p className="text-slate-500 text-xs">Manage blog posts, configure URLs, and write SEO content to rank on search engines.</p>
                       </div>
+                      
+                      <button
+                        onClick={handleSaveBlogs}
+                        disabled={isSavingBlogs}
+                        className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-extrabold py-2.5 px-6 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-md shadow-blue-500/10 cursor-pointer self-start sm:self-auto"
+                      >
+                        {isSavingBlogs ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="h-4 w-4" />
+                            Save All Changes
+                          </>
+                        )}
+                      </button>
+                    </div>
 
-                      {/* Main SEO Metadata inputs */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
-                        <div className="space-y-1">
-                          <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">Article Title *</label>
-                          <input
-                            type="text"
-                            value={post.title}
-                            onChange={(e) => handleBlogFieldChange(postIdx, 'title', e.target.value)}
-                            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-blue-500"
-                          />
+                    {/* Blog Posts Table */}
+                    <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-xs">
+                      {blogs.length === 0 ? (
+                        <div className="py-16 text-center space-y-3">
+                          <p className="text-slate-500 font-semibold text-sm">No blog posts found.</p>
+                          <button
+                            onClick={handleAddBlogPost}
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-5 rounded-xl text-xs cursor-pointer shadow-md"
+                          >
+                            Create Your First Post
+                          </button>
                         </div>
-
-                        <div className="space-y-1">
-                          <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">URL Slug (lowercase hyphenated) *</label>
-                          <input
-                            type="text"
-                            value={post.slug}
-                            onChange={(e) => handleBlogFieldChange(postIdx, 'slug', e.target.value.toLowerCase().replace(/\s+/g, '-'))}
-                            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-blue-500"
-                          />
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="bg-slate-50 border-b border-slate-200 text-xxs font-black text-slate-455 uppercase tracking-wider">
+                                <th className="py-4 px-6">Title</th>
+                                <th className="py-4 px-6">Slug</th>
+                                <th className="py-4 px-6">Date</th>
+                                <th className="py-4 px-6">Status</th>
+                                <th className="py-4 px-6 text-right">Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                              {blogs.map((post) => (
+                                <tr key={post.id} className="hover:bg-slate-50/70 transition-colors group">
+                                  <td className="py-4 px-6 font-bold text-slate-800 text-xs max-w-xs truncate">
+                                    <div className="flex flex-col">
+                                      <span className="font-extrabold text-slate-900 group-hover:text-blue-600 transition-colors cursor-pointer" onClick={() => setEditingPostId(post.id)}>
+                                        {post.title}
+                                      </span>
+                                      <div className="opacity-0 group-hover:opacity-100 flex items-center gap-2 mt-1.5 text-[10px] font-bold text-slate-400 transition-opacity">
+                                        <button onClick={() => setEditingPostId(post.id)} className="text-blue-600 hover:underline">Edit</button>
+                                        <span>|</span>
+                                        <button onClick={() => handleDeleteBlogPost(post.id)} className="text-red-550 hover:underline">Trash</button>
+                                        <span>|</span>
+                                        <a href={`/blog/${post.slug}`} target="_blank" rel="noreferrer" className="text-slate-550 hover:underline">View Post</a>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="py-4 px-6 text-xs font-semibold text-slate-500 max-w-[150px] truncate">
+                                    /{post.slug}
+                                  </td>
+                                  <td className="py-4 px-6 text-xs text-slate-500">
+                                    {post.createdAt}
+                                  </td>
+                                  <td className="py-4 px-6">
+                                    {post.isPublished ? (
+                                      <span className="inline-block px-2 py-0.5 text-[9px] font-black text-emerald-600 bg-emerald-50 rounded-lg uppercase tracking-wider">
+                                        Published
+                                      </span>
+                                    ) : (
+                                      <span className="inline-block px-2 py-0.5 text-[9px] font-black text-slate-500 bg-slate-100 rounded-lg uppercase tracking-wider">
+                                        Draft
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td className="py-4 px-6 text-right">
+                                    <button
+                                      onClick={() => setEditingPostId(post.id)}
+                                      className="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold py-1.5 px-4 rounded-xl text-xxs transition-colors cursor-pointer"
+                                    >
+                                      Edit Post
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
                         </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  
+                  /* 2. WordPress Gutenberg Editor Composer Workspace */
+                  (() => {
+                    const postIdx = blogs.findIndex(b => b.id === editingPostId);
+                    if (postIdx === -1) {
+                      setEditingPostId(null);
+                      return null;
+                    }
+                    const post = blogs[postIdx];
 
-                        <div className="space-y-1">
-                          <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">SEO Meta Title (recommended 50-60 chars) *</label>
-                          <input
-                            type="text"
-                            value={post.metaTitle}
-                            onChange={(e) => handleBlogFieldChange(postIdx, 'metaTitle', e.target.value)}
-                            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-blue-500"
-                          />
-                        </div>
-
-                        <div className="space-y-1">
-                          <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">SEO Meta Description (recommended 150-160 chars) *</label>
-                          <input
-                            type="text"
-                            value={post.metaDescription}
-                            onChange={(e) => handleBlogFieldChange(postIdx, 'metaDescription', e.target.value)}
-                            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-blue-500"
-                          />
-                        </div>
-
-                        <div className="space-y-1">
-                          <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">Date Created *</label>
-                          <input
-                            type="date"
-                            value={post.createdAt}
-                            onChange={(e) => handleBlogFieldChange(postIdx, 'createdAt', e.target.value)}
-                            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-blue-500"
-                          />
-                        </div>
-
-                        <div className="space-y-1">
-                          <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">Article Cover Image</label>
+                    return (
+                      <div className="space-y-6 animate-fadeIn">
+                        {/* Editor Header Bar */}
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white border border-slate-200 rounded-3xl p-5 gap-4">
+                          <button
+                            onClick={() => setEditingPostId(null)}
+                            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors cursor-pointer self-start sm:self-auto"
+                          >
+                            <ArrowLeft className="h-4 w-4" />
+                            Back to Posts
+                          </button>
+                          
                           <div className="flex items-center gap-3">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              id={`upload-cover-${post.id}`}
-                              className="hidden"
-                              onChange={(e) => handleUploadBlogMedia(e, postIdx, null)}
-                            />
-                            <label
-                              htmlFor={`upload-cover-${post.id}`}
-                              className="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold py-2 px-4 rounded-xl text-xs cursor-pointer transition-colors shadow-xs"
+                            <span className="text-xxs font-black text-slate-400 uppercase tracking-widest bg-slate-50 border border-slate-150 px-2.5 py-1 rounded-lg">
+                              WordPress Gutenberg view
+                            </span>
+                            <button
+                              onClick={handleSaveBlogs}
+                              disabled={isSavingBlogs}
+                              className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-extrabold py-2 px-5 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-md shadow-blue-500/10 cursor-pointer"
                             >
-                              <Upload className="h-4 w-4 inline mr-1" />
-                              Upload Cover
-                            </label>
-                            {post.coverImage && (
-                              <span className="text-[10px] text-emerald-650 font-bold uppercase tracking-wider flex items-center gap-1">
-                                <Check className="h-3.5 w-3.5" />
-                                Cover Image Uploaded
-                              </span>
-                            )}
+                              {isSavingBlogs ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                  Saving...
+                                </>
+                              ) : (
+                                <>
+                                  <Save className="h-4 w-4" />
+                                  Save & Update
+                                </>
+                              )}
+                            </button>
                           </div>
                         </div>
-                      </div>
 
-                      {/* Blocks Composer */}
-                      <div className="border-t border-slate-100 pt-5 space-y-4 text-left">
-                        <div className="flex items-center justify-between border-b border-slate-50 pb-2">
-                          <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-widest">Article Body Content Blocks</h4>
-                          <span className="text-xxs text-slate-400 font-bold uppercase">Arrange, edit, or upload blocks</span>
-                        </div>
+                        {/* Composer Split Grid Layout */}
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                          
+                          {/* Left Workspace: Gutenberg Block Editor Area (8 cols) */}
+                          <div className="lg:col-span-8 bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-xs space-y-6">
+                            
+                            {/* WordPress Title field */}
+                            <input
+                              type="text"
+                              value={post.title}
+                              onChange={(e) => handleBlogFieldChange(postIdx, 'title', e.target.value)}
+                              placeholder="Add Title"
+                              className="w-full text-3.5xl font-black tracking-tight text-slate-900 border-b border-transparent focus:border-slate-100 pb-3 focus:outline-none placeholder-slate-300"
+                            />
 
-                        <div className="space-y-3">
-                          {post.blocks && post.blocks.map((block, blockIdx) => (
-                            <div key={block.id} className="bg-slate-50/50 border border-slate-150 rounded-2xl p-4 space-y-3 relative hover:border-slate-350 transition-colors">
-                              {/* Block Header Toolbar */}
-                              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                                <div className="flex items-center gap-2">
-                                  <span className="w-5 h-5 bg-slate-200 text-slate-600 rounded-full flex items-center justify-center text-[10px] font-bold">
-                                    {blockIdx + 1}
-                                  </span>
-                                  <span className="text-xxs font-black text-slate-400 uppercase tracking-widest">
-                                    Block: {block.type}
-                                  </span>
+                            {/* Blocks Stack container */}
+                            <div className="space-y-2">
+                              {post.blocks && post.blocks.map((block, blockIdx) => (
+                                <div key={block.id} className="space-y-2">
+                                  
+                                  {/* Block container with WordPress-like Hover side controls */}
+                                  <div className="group relative border border-transparent hover:border-slate-150 hover:bg-slate-50/20 rounded-2xl p-4 transition-all">
+                                    
+                                    {/* Left Gutter Floating Toolbar (Gutenberg style) */}
+                                    <div className="absolute -left-3.5 top-3 flex-col gap-1 items-center bg-white border border-slate-200 rounded-lg p-1 shadow-xs hidden group-hover:flex z-10 transition-all">
+                                      <button
+                                        type="button"
+                                        onClick={() => handleMoveBlogBlock(postIdx, blockIdx, 'up')}
+                                        className="p-1 hover:text-blue-600 hover:bg-slate-50 text-[10px] rounded-md"
+                                        title="Move Up"
+                                      >
+                                        ▲
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleMoveBlogBlock(postIdx, blockIdx, 'down')}
+                                        className="p-1 hover:text-blue-600 hover:bg-slate-50 text-[10px] rounded-md"
+                                        title="Move Down"
+                                      >
+                                        ▼
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteBlogBlock(postIdx, blockIdx)}
+                                        className="p-1 text-red-500 hover:text-red-750 hover:bg-red-50 text-[9px] rounded-md border-t border-slate-100 mt-0.5"
+                                        title="Delete block"
+                                      >
+                                        ✕
+                                      </button>
+                                    </div>
+
+                                    {/* Block Content Inputs */}
+                                    {['paragraph', 'h1', 'h2', 'h3', 'list'].includes(block.type) ? (
+                                      <div className="space-y-1">
+                                        <div className="flex items-center gap-1.5 text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                          <span>{block.type} Block</span>
+                                          {block.type === 'list' && <span>(bullets separated by newlines)</span>}
+                                        </div>
+                                        <textarea
+                                          rows={block.type === 'paragraph' ? 3 : 1}
+                                          value={block.content}
+                                          onChange={(e) => handleBlogBlockFieldChange(postIdx, blockIdx, 'content', e.target.value)}
+                                          className="w-full bg-transparent border-0 border-b border-transparent focus:border-slate-200 p-0 text-slate-800 placeholder-slate-400 focus:ring-0 focus:outline-none leading-relaxed text-xs sm:text-sm"
+                                          placeholder={
+                                            block.type === 'h1' ? 'Heading 1...' :
+                                            block.type === 'h2' ? 'Heading 2...' :
+                                            block.type === 'h3' ? 'Heading 3...' :
+                                            block.type === 'list' ? '- Point 1\n- Point 2...' :
+                                            'Start writing your text...'
+                                          }
+                                        />
+                                      </div>
+                                    ) : block.type === 'image' || block.type === 'video' ? (
+                                      <div className="space-y-3">
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{block.type} Block</span>
+                                        </div>
+                                        
+                                        <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+                                          <div className="sm:col-span-4 space-y-2">
+                                            <input
+                                              type="file"
+                                              accept={block.type === 'image' ? 'image/*' : 'video/*'}
+                                              id={`upload-gutenberg-${block.id}`}
+                                              className="hidden"
+                                              onChange={(e) => handleUploadBlogMedia(e, postIdx, blockIdx)}
+                                            />
+                                            <label
+                                              htmlFor={`upload-gutenberg-${block.id}`}
+                                              className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold py-2 px-3 rounded-xl text-xxs flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-xxs"
+                                            >
+                                              <Upload className="h-3.5 w-3.5" />
+                                              {block.mediaUrl ? 'Replace File' : 'Upload File'}
+                                            </label>
+                                          </div>
+                                          
+                                          <div className="sm:col-span-8">
+                                            <input
+                                              type="text"
+                                              value={block.content}
+                                              onChange={(e) => handleBlogBlockFieldChange(postIdx, blockIdx, 'content', e.target.value)}
+                                              className="w-full bg-transparent border-0 border-b border-slate-100 focus:border-blue-500 py-1 px-0 text-xs placeholder-slate-400 focus:ring-0 focus:outline-none font-medium"
+                                              placeholder="Write caption / description (optional)"
+                                            />
+                                          </div>
+                                        </div>
+
+                                        {block.mediaUrl && (
+                                          <div className="mt-2 max-w-[300px] rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
+                                            {block.type === 'image' ? (
+                                              <img src={block.mediaUrl} alt="" className="w-full h-auto object-cover max-h-[160px]" />
+                                            ) : (
+                                              <video src={block.mediaUrl} controls className="w-full max-h-[160px]" />
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
+                                    ) : null}
+                                  </div>
+
+                                  {/* Gutenberg style Inline Add block inserter (shows when hover between blocks) */}
+                                  <div className="group/line relative py-1.5 flex items-center justify-center">
+                                    <div className="absolute inset-x-0 h-px bg-slate-200/40 opacity-0 group-hover/line:opacity-100 transition-opacity" />
+                                    <div className="opacity-0 group-hover/line:opacity-100 transition-opacity z-10 bg-white border border-slate-200 rounded-full p-1 shadow-sm flex items-center gap-1.5">
+                                      <button
+                                        type="button"
+                                        onClick={() => handleAddBlogBlockAtIndex(postIdx, blockIdx + 1, 'paragraph')}
+                                        className="w-5 h-5 bg-slate-50 hover:bg-blue-50 hover:text-blue-600 rounded-full flex items-center justify-center text-[10px] font-black text-slate-500"
+                                        title="Add Paragraph"
+                                      >
+                                        P
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleAddBlogBlockAtIndex(postIdx, blockIdx + 1, 'h2')}
+                                        className="w-5 h-5 bg-slate-50 hover:bg-blue-50 hover:text-blue-600 rounded-full flex items-center justify-center text-[10px] font-black text-slate-500"
+                                        title="Add H2 Heading"
+                                      >
+                                        H2
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleAddBlogBlockAtIndex(postIdx, blockIdx + 1, 'list')}
+                                        className="w-5 h-5 bg-slate-50 hover:bg-blue-50 hover:text-blue-600 rounded-full flex items-center justify-center text-[10px] font-black text-slate-500"
+                                        title="Add Bullet List"
+                                      >
+                                        •
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleAddBlogBlockAtIndex(postIdx, blockIdx + 1, 'image')}
+                                        className="w-5 h-5 bg-slate-50 hover:bg-blue-50 hover:text-blue-600 rounded-full flex items-center justify-center text-[10px] font-black text-slate-500"
+                                        title="Add Photo"
+                                      >
+                                        📷
+                                      </button>
+                                    </div>
+                                  </div>
+
                                 </div>
-                                <div className="flex items-center gap-1.5">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleMoveBlogBlock(postIdx, blockIdx, 'up')}
-                                    className="p-1 text-slate-500 hover:text-blue-650 hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
-                                    title="Move Up"
-                                  >
-                                    ▲
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleMoveBlogBlock(postIdx, blockIdx, 'down')}
-                                    className="p-1 text-slate-500 hover:text-blue-655 hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
-                                    title="Move Down"
-                                  >
-                                    ▼
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDeleteBlogBlock(postIdx, blockIdx)}
-                                    className="p-1 text-red-500 hover:text-red-750 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
-                                    title="Delete Block"
-                                  >
-                                    ✕
-                                  </button>
+                              ))}
+                            </div>
+
+                            {/* Append Block buttons at the end */}
+                            <div className="border-t border-slate-100 pt-6 flex flex-wrap items-center justify-center gap-2">
+                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-2">Add Content block:</span>
+                              <button
+                                type="button"
+                                onClick={() => handleAddBlogBlock(postIdx, 'h2')}
+                                className="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold py-1.5 px-3.5 rounded-xl text-xxs cursor-pointer"
+                              >
+                                + Heading H2
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleAddBlogBlock(postIdx, 'h3')}
+                                className="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold py-1.5 px-3.5 rounded-xl text-xxs cursor-pointer"
+                              >
+                                + Heading H3
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleAddBlogBlock(postIdx, 'paragraph')}
+                                className="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold py-1.5 px-3.5 rounded-xl text-xxs cursor-pointer"
+                              >
+                                + Paragraph
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleAddBlogBlock(postIdx, 'list')}
+                                className="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold py-1.5 px-3.5 rounded-xl text-xxs cursor-pointer"
+                              >
+                                + Bullet List
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleAddBlogBlock(postIdx, 'image')}
+                                className="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold py-1.5 px-3.5 rounded-xl text-xxs cursor-pointer"
+                              >
+                                + Add Image
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleAddBlogBlock(postIdx, 'video')}
+                                className="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold py-1.5 px-3.5 rounded-xl text-xxs cursor-pointer"
+                              >
+                                + Add Video
+                              </button>
+                            </div>
+
+                          </div>
+
+                          {/* Right Workspace Sidebar: Document inspector & SEO panel (4 cols) */}
+                          <div className="lg:col-span-4 space-y-6">
+                            
+                            {/* Panel 1: Document & Publish Options */}
+                            <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs space-y-4">
+                              <h4 className="text-xs font-black text-slate-900 border-b border-slate-100 pb-2 flex items-center justify-between">
+                                Document Status
+                              </h4>
+
+                              <div className="flex items-center justify-between">
+                                <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">Publish Visibility</label>
+                                <select
+                                  value={post.isPublished ? 'published' : 'draft'}
+                                  onChange={(e) => handleBlogFieldChange(postIdx, 'isPublished', e.target.value === 'published')}
+                                  className="border border-slate-250 rounded-xl px-2.5 py-1 text-xxs font-bold text-slate-700 focus:outline-none"
+                                >
+                                  <option value="draft">Draft (Private)</option>
+                                  <option value="published">Published (Public)</option>
+                                </select>
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-xxs font-black text-slate-455 uppercase tracking-wider block">Publish Date</label>
+                                <input
+                                  type="date"
+                                  value={post.createdAt}
+                                  onChange={(e) => handleBlogFieldChange(postIdx, 'createdAt', e.target.value)}
+                                  className="w-full border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none focus:border-blue-500 bg-slate-50/50"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Panel 2: Featured Image */}
+                            <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs space-y-3">
+                              <h4 className="text-xs font-black text-slate-900 border-b border-slate-100 pb-2">
+                                Featured Image (Cover)
+                              </h4>
+
+                              <div className="space-y-3">
+                                {post.coverImage ? (
+                                  <div className="relative rounded-2xl overflow-hidden border border-slate-200 aspect-[16/10] bg-slate-50">
+                                    <img
+                                      src={post.coverImage}
+                                      alt=""
+                                      className="w-full h-full object-cover"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => handleBlogFieldChange(postIdx, 'coverImage', '')}
+                                      className="absolute top-2 right-2 bg-red-600 hover:bg-red-750 text-white rounded-full p-1.5 cursor-pointer shadow-md transition-all"
+                                      title="Remove Image"
+                                    >
+                                      <X className="h-3.5 w-3.5" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div className="border border-dashed border-slate-300 rounded-2xl p-6 text-center text-slate-400 text-xs">
+                                    No featured image set
+                                  </div>
+                                )}
+
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  id={`wp-cover-file-${post.id}`}
+                                  className="hidden"
+                                  onChange={(e) => handleUploadBlogMedia(e, postIdx, null)}
+                                />
+                                <label
+                                  htmlFor={`wp-cover-file-${post.id}`}
+                                  className="w-full bg-slate-55 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold py-2 rounded-xl text-xxs flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-xxs"
+                                >
+                                  <Upload className="h-3.5 w-3.5" />
+                                  {post.coverImage ? 'Change Featured Image' : 'Select Featured Image'}
+                                </label>
+                              </div>
+                            </div>
+
+                            {/* Panel 3: SEO Configuration & Character limits check */}
+                            <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs space-y-4">
+                              <h4 className="text-xs font-black text-slate-900 border-b border-slate-100 pb-2">
+                                RankMath SEO Inspector
+                              </h4>
+
+                              {/* Slug */}
+                              <div className="space-y-1">
+                                <label className="text-xxs font-black text-slate-455 uppercase tracking-wider block">Permalink / Slug *</label>
+                                <input
+                                  type="text"
+                                  value={post.slug}
+                                  onChange={(e) => handleBlogFieldChange(postIdx, 'slug', e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-_]/g, ''))}
+                                  className="w-full border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none focus:border-blue-500"
+                                />
+                                <div className="text-[10px] text-slate-400 font-bold break-all bg-slate-50 p-1.5 rounded-lg border border-slate-150">
+                                  Url preview: <span className="text-blue-650">/blog/{post.slug}</span>
                                 </div>
                               </div>
 
-                              {/* Block Type Renderers */}
-                              {['paragraph', 'h1', 'h2', 'h3', 'list'].includes(block.type) ? (
-                                <div className="space-y-1">
-                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
-                                    {block.type === 'list' ? 'Bullet list items (use newlines starting with -)' : `${block.type} text content`}
-                                  </label>
-                                  <textarea
-                                    rows={block.type === 'paragraph' ? 3 : 1}
-                                    value={block.content}
-                                    onChange={(e) => handleBlogBlockFieldChange(postIdx, blockIdx, 'content', e.target.value)}
-                                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-blue-500 resize-none leading-relaxed"
-                                    placeholder={`Type your ${block.type} content...`}
-                                  />
+                              {/* Meta Title */}
+                              <div className="space-y-1">
+                                <div className="flex justify-between items-center">
+                                  <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">SEO Title *</label>
+                                  <span className={`text-[10px] font-bold ${
+                                    post.metaTitle.length >= 45 && post.metaTitle.length <= 60
+                                      ? 'text-emerald-600'
+                                      : 'text-red-500'
+                                  }`}>
+                                    {post.metaTitle.length} / 60 chars
+                                  </span>
                                 </div>
-                              ) : block.type === 'image' || block.type === 'video' ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                  <div className="space-y-2">
-                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider">
-                                      Upload block {block.type} file
-                                    </label>
-                                    <div className="flex items-center gap-2">
-                                      <input
-                                        type="file"
-                                        accept={block.type === 'image' ? 'image/*' : 'video/*'}
-                                        id={`upload-block-media-${post.id}-${block.id}`}
-                                        className="hidden"
-                                        onChange={(e) => handleUploadBlogMedia(e, postIdx, blockIdx)}
-                                      />
-                                      <label
-                                        htmlFor={`upload-block-media-${post.id}-${block.id}`}
-                                        className="bg-white hover:bg-slate-100 border border-slate-200 text-slate-750 font-bold py-1.5 px-3.5 rounded-xl text-[10px] cursor-pointer transition-colors shadow-xxs"
-                                      >
-                                        <Upload className="h-3 w-3 inline mr-1" />
-                                        Select File
-                                      </label>
-                                      {block.mediaUrl && (
-                                        <span className="text-[9px] text-emerald-600 font-bold uppercase tracking-wider">
-                                          ✓ File Set
-                                        </span>
-                                      )}
-                                    </div>
-                                    {block.mediaUrl && (
-                                      <div className="mt-1 max-w-[150px] rounded-lg overflow-hidden border border-slate-200">
-                                        {block.type === 'image' ? (
-                                          <img src={block.mediaUrl} alt="" className="w-full h-auto object-cover max-h-[80px]" />
-                                        ) : (
-                                          <video src={block.mediaUrl} className="w-full max-h-[80px]" />
-                                        )}
-                                      </div>
-                                    )}
-                                  </div>
+                                <input
+                                  type="text"
+                                  value={post.metaTitle}
+                                  onChange={(e) => handleBlogFieldChange(postIdx, 'metaTitle', e.target.value)}
+                                  className="w-full border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none focus:border-blue-500"
+                                  placeholder="SEO Meta Title"
+                                />
+                              </div>
 
-                                  <div className="space-y-1">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
-                                      Optional caption text
-                                    </label>
-                                    <input
-                                      type="text"
-                                      value={block.content}
-                                      onChange={(e) => handleBlogBlockFieldChange(postIdx, blockIdx, 'content', e.target.value)}
-                                      className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-blue-500"
-                                      placeholder="E.g. A female driver smiles behind the wheel"
-                                    />
-                                  </div>
+                              {/* Meta Description */}
+                              <div className="space-y-1">
+                                <div className="flex justify-between items-center">
+                                  <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">SEO Description *</label>
+                                  <span className={`text-[10px] font-bold ${
+                                    post.metaDescription.length >= 120 && post.metaDescription.length <= 160
+                                      ? 'text-emerald-600'
+                                      : 'text-red-500'
+                                  }`}>
+                                    {post.metaDescription.length} / 160 chars
+                                  </span>
                                 </div>
-                              ) : null}
+                                <textarea
+                                  rows={3}
+                                  value={post.metaDescription}
+                                  onChange={(e) => handleBlogFieldChange(postIdx, 'metaDescription', e.target.value)}
+                                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-blue-500 resize-none leading-relaxed"
+                                  placeholder="SEO Meta Description"
+                                />
+                              </div>
                             </div>
-                          ))}
-                        </div>
 
-                        {/* Add Block Bar */}
-                        <div className="bg-slate-100/50 border border-dashed border-slate-200 rounded-2xl p-4 flex flex-wrap items-center justify-center gap-2">
-                          <span className="text-[10px] font-black text-slate-455 uppercase tracking-wider mr-2">Insert Block:</span>
-                          <button
-                            type="button"
-                            onClick={() => handleAddBlogBlock(postIdx, 'h1')}
-                            className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-1 px-3 rounded-lg text-[10px] cursor-pointer"
-                          >
-                            + H1 Heading
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleAddBlogBlock(postIdx, 'h2')}
-                            className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-1 px-3 rounded-lg text-[10px] cursor-pointer"
-                          >
-                            + H2 Heading
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleAddBlogBlock(postIdx, 'h3')}
-                            className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-1 px-3 rounded-lg text-[10px] cursor-pointer"
-                          >
-                            + H3 Heading
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleAddBlogBlock(postIdx, 'paragraph')}
-                            className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-1 px-3 rounded-lg text-[10px] cursor-pointer"
-                          >
-                            + Paragraph
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleAddBlogBlock(postIdx, 'list')}
-                            className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-1 px-3 rounded-lg text-[10px] cursor-pointer"
-                          >
-                            + Bullet List
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleAddBlogBlock(postIdx, 'image')}
-                            className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-1 px-3 rounded-lg text-[10px] cursor-pointer"
-                          >
-                            + Photo Block
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleAddBlogBlock(postIdx, 'video')}
-                            className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-1 px-3 rounded-lg text-[10px] cursor-pointer"
-                          >
-                            + Video Block
-                          </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    );
+                  })()
+                )}
 
-                <div className="flex justify-end pt-4">
-                  <button
-                    onClick={handleSaveBlogs}
-                    disabled={isSavingBlogs}
-                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-extrabold py-3 px-8 rounded-xl text-sm flex items-center gap-1.5 transition-all shadow-lg shadow-blue-500/10 cursor-pointer"
-                  >
-                    {isSavingBlogs ? (
-                      <>
-                        <Loader2 className="h-4.5 w-4.5 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="h-4.5 w-4.5" />
-                        Save Blog Posts
-                      </>
-                    )}
-                  </button>
-                </div>
               </div>
             )}
 
