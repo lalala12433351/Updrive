@@ -72,6 +72,25 @@ export default function LandingPopup({ onNewBookingAdded }: LandingPopupProps) {
         console.error("Failed to store booking", err);
       }
 
+      // Push to GTM dataLayer for Conversion API tracking
+      try {
+        const dataLayer = (window as any).dataLayer || [];
+        dataLayer.push({
+          event: 'contactFormSubmitted',
+          formId: 63,
+          'gtm.uniqueEventId': 14,
+          inputs: [
+            { name: 'your-name', value: fullName.trim() },
+            { name: 'your-email', value: email.trim() },
+            { name: 'your-phone', value: contactNumber.trim() },
+            { name: 'your-subject', value: 'Landing Popup Inquiry' },
+            { name: 'your-message', value: comment.trim() || 'No message' }
+          ]
+        });
+      } catch (gtmErr) {
+        console.warn('GTM dataLayer push failed:', gtmErr);
+      }
+
       // Submit to Web3Forms if configured
       const web3FormsKey = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY;
       console.log("Submitting popup. Web3Forms key loaded:", !!web3FormsKey);

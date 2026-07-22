@@ -84,6 +84,25 @@ export default function BookingForm({ selectedPackageId, selectedLocation, onCle
       existingBookings.push(newBooking);
       localStorage.setItem('updrive_bookings', JSON.stringify(existingBookings));
 
+      // Push to GTM dataLayer for Conversion API tracking
+      try {
+        const dataLayer = (window as any).dataLayer || [];
+        dataLayer.push({
+          event: 'contactFormSubmitted',
+          formId: 63,
+          'gtm.uniqueEventId': 14,
+          inputs: [
+            { name: 'your-name', value: fullName.trim() },
+            { name: 'your-email', value: email.trim() },
+            { name: 'your-phone', value: mobileNumber.trim() },
+            { name: 'your-subject', value: packageId || 'Landing Page Form' },
+            { name: 'your-message', value: comment.trim() || 'No special requests' }
+          ]
+        });
+      } catch (gtmErr) {
+        console.warn('GTM dataLayer push failed:', gtmErr);
+      }
+
       // Submit to Web3Forms if configured
       const web3FormsKey = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY;
       console.log("Submitting form. Web3Forms key loaded:", !!web3FormsKey);
