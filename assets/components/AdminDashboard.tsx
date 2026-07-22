@@ -34,6 +34,7 @@ export default function AdminDashboard() {
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [isUploadingReelCover, setIsUploadingReelCover] = useState<boolean>(false);
   const [isUploadingHeroImage, setIsUploadingHeroImage] = useState<boolean>(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState<boolean>(false);
   
   const [uploadCaption, setUploadCaption] = useState<string>('');
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -406,6 +407,31 @@ export default function AdminDashboard() {
     } finally {
       setIsSavingReviews(false);
     }
+  };
+
+  const handleUploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>, reviewIdx: number) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingAvatar(true);
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = async () => {
+      try {
+        const base64Data = reader.result as string;
+        const uploadRes = await dataService.uploadImage(file.name, base64Data);
+        if (uploadRes.success && uploadRes.url) {
+          handleReviewFieldChange(reviewIdx, 'avatarUrl', uploadRes.url);
+          showToast('success', 'Profile photo uploaded!');
+        } else {
+          showToast('error', 'Profile photo upload failed.');
+        }
+      } catch (err) {
+        showToast('error', 'Error during profile photo upload.');
+      } finally {
+        setIsUploadingAvatar(false);
+      }
+    };
   };
   // Non-authenticated view (Login form)
   if (!isAuthenticated) {
@@ -1456,11 +1482,53 @@ export default function AdminDashboard() {
                         </div>
 
                         <div className="md:col-span-4 border-t md:border-t-0 md:border-l border-slate-100 pt-5 md:pt-0 md:pl-6 flex flex-col justify-center items-center text-center space-y-3">
-                          <span className="block text-xxs font-black text-slate-455 uppercase tracking-wider">Profile Avatar Preview</span>
-                          <div className="w-16 h-16 rounded-full bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center font-bold text-xl shadow-inner">
-                            {review.author ? review.author.charAt(0) : 'U'}
+                          <span className="block text-xxs font-black text-slate-455 uppercase tracking-wider">Profile Photo</span>
+                          
+                          <div className="relative">
+                            {review.avatarUrl ? (
+                              <div className="relative">
+                                <img
+                                  src={review.avatarUrl}
+                                  alt=""
+                                  className="w-16 h-16 rounded-full object-cover border border-slate-200 shadow-md"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleReviewFieldChange(index, 'avatarUrl', '')}
+                                  className="absolute -top-1 -right-1 bg-red-600 hover:bg-red-750 text-white rounded-full p-1 transition-all cursor-pointer shadow-md"
+                                  title="Remove Photo"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="w-16 h-16 rounded-full bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center font-bold text-xl shadow-inner">
+                                {review.author ? review.author.charAt(0) : 'U'}
+                              </div>
+                            )}
                           </div>
-                          <div className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">Avatar generated dynamically</div>
+
+                          <div className="w-full">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              id={`upload-avatar-${review.id}`}
+                              className="hidden"
+                              onChange={(e) => handleUploadAvatar(e, index)}
+                              disabled={isUploadingAvatar}
+                            />
+                            <label
+                              htmlFor={`upload-avatar-${review.id}`}
+                              className="inline-flex items-center gap-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold py-1.5 px-3.5 rounded-xl text-[10px] cursor-pointer transition-colors"
+                            >
+                              <Upload className="h-3 w-3" />
+                              {review.avatarUrl ? 'Change Photo' : 'Upload Photo'}
+                            </label>
+                          </div>
+                          
+                          <div className="text-slate-400 text-[9px] font-bold uppercase tracking-wider">
+                            {review.avatarUrl ? 'Custom Image Set' : 'Initials fallback active'}
+                          </div>
                         </div>
                       </div>
                     </div>

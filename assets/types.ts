@@ -17,6 +17,7 @@ export interface Testimonial {
   author: string;
   avatarSeed: string;
   role?: string;
+  avatarUrl?: string;
 }
 
 export interface FeatureSkill {

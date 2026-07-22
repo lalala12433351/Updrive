@@ -110,10 +110,19 @@ export default function Testimonials() {
 
               {/* Reviewer Meta info */}
               <div className="flex items-center gap-3 border-t border-slate-50 pt-5 mt-auto">
-                {/* Simulated minimal avatar profile badge */}
-                <div className="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm shrink-0">
-                  {t.author.charAt(0)}
-                </div>
+                {/* Profile Photo or simulated minimal avatar badge */}
+                {t.avatarUrl ? (
+                  <img
+                    src={t.avatarUrl}
+                    alt={t.author}
+                    className="w-10 h-10 rounded-full object-cover shrink-0 border border-slate-100"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm shrink-0">
+                    {t.author ? t.author.charAt(0) : 'U'}
+                  </div>
+                )}
                 <div>
                   <h4 className="text-sm font-bold text-slate-900">{t.author}</h4>
                   {t.role && (
