@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Settings, Plus, Trash2, LogOut, Globe, Lock, FileText, Image as ImageIcon, Upload, Check, Loader2, Save, X, Play, Star, Briefcase, ArrowLeft } from 'lucide-react';
+import { Settings, Plus, Trash2, LogOut, Globe, Lock, FileText, Image as ImageIcon, Upload, Check, Loader2, Save, X, Play, Star, Briefcase, ArrowLeft, LayoutDashboard } from 'lucide-react';
 import { PricingPackage, Testimonial, JobOpening, BlogPost } from '../types';
 import { GalleryItem } from './Gallery';
 import { InstagramReel } from './Testimonials';
@@ -13,7 +13,7 @@ export default function AdminDashboard() {
   const [loginError, setLoginError] = useState<string>('');
   const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
 
-  const [activeTab, setActiveTab] = useState<'courses' | 'gallery' | 'reels' | 'hero' | 'reviews' | 'jobs' | 'blog'>('courses');
+  const [activeTab, setActiveTab] = useState<'home' | 'courses' | 'gallery' | 'reels' | 'hero' | 'reviews' | 'jobs' | 'blog'>('home');
   const [packages, setPackages] = useState<PricingPackage[]>([]);
   const [gallery, setGallery] = useState<GalleryItem[]>([]);
   const [reels, setReels] = useState<InstagramReel[]>([]);
@@ -745,101 +745,133 @@ export default function AdminDashboard() {
       {/* Main body Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         
-        {/* Navigation Tabs */}
-        <div className="flex flex-wrap border-b border-slate-200 mb-8">
-          <button
-            onClick={() => setActiveTab('courses')}
-            className={`py-3.5 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
-              activeTab === 'courses'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <FileText className="h-4.5 w-4.5" />
-            Manage Course Packages
-          </button>
-          
-          <button
-            onClick={() => setActiveTab('gallery')}
-            className={`py-3.5 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
-              activeTab === 'gallery'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <ImageIcon className="h-4.5 w-4.5" />
-            Manage Gallery Media
-          </button>
-
-          <button
-            onClick={() => setActiveTab('reels')}
-            className={`py-3.5 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
-              activeTab === 'reels'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <Play className="h-4.5 w-4.5" />
-            Manage Instagram Reels
-          </button>
-
-          <button
-            onClick={() => setActiveTab('hero')}
-            className={`py-3.5 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
-              activeTab === 'hero'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <Settings className="h-4.5 w-4.5" />
-            Manage Hero Banner
-          </button>
-
-          <button
-            onClick={() => setActiveTab('reviews')}
-            className={`py-3.5 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
-              activeTab === 'reviews'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <Star className="h-4.5 w-4.5" />
-            Manage Reviews
-          </button>
-
-          <button
-            onClick={() => setActiveTab('jobs')}
-            className={`py-3.5 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
-              activeTab === 'jobs'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <Briefcase className="h-4.5 w-4.5" />
-            Manage Careers
-          </button>
-
-          <button
-            onClick={() => setActiveTab('blog')}
-            className={`py-3.5 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
-              activeTab === 'blog'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <FileText className="h-4.5 w-4.5" />
-            Manage Blog
-          </button>
-        </div>
-
-        {/* Loading Spinner */}
+        {/* Home Dashboard or Section Content */}
         {isLoadingData ? (
           <div className="py-20 flex flex-col items-center justify-center gap-3">
             <Loader2 className="h-10 w-10 text-blue-650 animate-spin" />
             <span className="text-slate-500 text-sm font-semibold">Syncing database changes...</span>
           </div>
+        ) : activeTab === 'home' ? (
+          /* ===== HOME DASHBOARD GRID ===== */
+          <div className="space-y-8">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Welcome to UpDrive Dashboard</h2>
+              <p className="text-slate-500 text-sm font-semibold max-w-lg mx-auto">Select a section below to manage your website content.</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {/* Course Packages */}
+              <button
+                onClick={() => setActiveTab('courses')}
+                className="group bg-white border border-slate-200 hover:border-blue-300 rounded-3xl p-6 text-left space-y-4 shadow-xs hover:shadow-md transition-all cursor-pointer"
+              >
+                <div className="w-12 h-12 bg-blue-50 group-hover:bg-blue-100 rounded-2xl flex items-center justify-center transition-colors">
+                  <FileText className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 group-hover:text-blue-600 transition-colors">Course Packages</h3>
+                  <p className="text-xxs text-slate-500 font-semibold mt-1">Manage pricing plans & driving course packages</p>
+                </div>
+              </button>
+
+              {/* Gallery Media */}
+              <button
+                onClick={() => setActiveTab('gallery')}
+                className="group bg-white border border-slate-200 hover:border-emerald-300 rounded-3xl p-6 text-left space-y-4 shadow-xs hover:shadow-md transition-all cursor-pointer"
+              >
+                <div className="w-12 h-12 bg-emerald-50 group-hover:bg-emerald-100 rounded-2xl flex items-center justify-center transition-colors">
+                  <ImageIcon className="h-6 w-6 text-emerald-600" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 group-hover:text-emerald-600 transition-colors">Gallery Media</h3>
+                  <p className="text-xxs text-slate-500 font-semibold mt-1">Upload & manage photo gallery images</p>
+                </div>
+              </button>
+
+              {/* Instagram Reels */}
+              <button
+                onClick={() => setActiveTab('reels')}
+                className="group bg-white border border-slate-200 hover:border-pink-300 rounded-3xl p-6 text-left space-y-4 shadow-xs hover:shadow-md transition-all cursor-pointer"
+              >
+                <div className="w-12 h-12 bg-pink-50 group-hover:bg-pink-100 rounded-2xl flex items-center justify-center transition-colors">
+                  <Play className="h-6 w-6 text-pink-600" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 group-hover:text-pink-600 transition-colors">Instagram Reels</h3>
+                  <p className="text-xxs text-slate-500 font-semibold mt-1">Manage Instagram reel embeds & covers</p>
+                </div>
+              </button>
+
+              {/* Hero Banner */}
+              <button
+                onClick={() => setActiveTab('hero')}
+                className="group bg-white border border-slate-200 hover:border-amber-300 rounded-3xl p-6 text-left space-y-4 shadow-xs hover:shadow-md transition-all cursor-pointer"
+              >
+                <div className="w-12 h-12 bg-amber-50 group-hover:bg-amber-100 rounded-2xl flex items-center justify-center transition-colors">
+                  <Settings className="h-6 w-6 text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 group-hover:text-amber-600 transition-colors">Hero Banner</h3>
+                  <p className="text-xxs text-slate-500 font-semibold mt-1">Edit hero slides, buttons & banners</p>
+                </div>
+              </button>
+
+              {/* Reviews */}
+              <button
+                onClick={() => setActiveTab('reviews')}
+                className="group bg-white border border-slate-200 hover:border-yellow-300 rounded-3xl p-6 text-left space-y-4 shadow-xs hover:shadow-md transition-all cursor-pointer"
+              >
+                <div className="w-12 h-12 bg-yellow-50 group-hover:bg-yellow-100 rounded-2xl flex items-center justify-center transition-colors">
+                  <Star className="h-6 w-6 text-yellow-600" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 group-hover:text-yellow-600 transition-colors">Reviews</h3>
+                  <p className="text-xxs text-slate-500 font-semibold mt-1">Manage student testimonials & ratings</p>
+                </div>
+              </button>
+
+              {/* Careers */}
+              <button
+                onClick={() => setActiveTab('jobs')}
+                className="group bg-white border border-slate-200 hover:border-violet-300 rounded-3xl p-6 text-left space-y-4 shadow-xs hover:shadow-md transition-all cursor-pointer"
+              >
+                <div className="w-12 h-12 bg-violet-50 group-hover:bg-violet-100 rounded-2xl flex items-center justify-center transition-colors">
+                  <Briefcase className="h-6 w-6 text-violet-600" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 group-hover:text-violet-600 transition-colors">Careers</h3>
+                  <p className="text-xxs text-slate-500 font-semibold mt-1">Post job openings & manage applications</p>
+                </div>
+              </button>
+
+              {/* Blog / SEO */}
+              <button
+                onClick={() => setActiveTab('blog')}
+                className="group bg-white border border-slate-200 hover:border-indigo-300 rounded-3xl p-6 text-left space-y-4 shadow-xs hover:shadow-md transition-all cursor-pointer"
+              >
+                <div className="w-12 h-12 bg-indigo-50 group-hover:bg-indigo-100 rounded-2xl flex items-center justify-center transition-colors">
+                  <FileText className="h-6 w-6 text-indigo-600" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition-colors">Blog / SEO</h3>
+                  <p className="text-xxs text-slate-500 font-semibold mt-1">Write SEO blog posts with the Gutenberg editor</p>
+                </div>
+              </button>
+            </div>
+          </div>
         ) : (
+          /* ===== SUB-SECTION CONTENT ===== */
           <div>
+            {/* Back to Dashboard button */}
+            <div className="mb-6">
+              <button
+                onClick={() => { setActiveTab('home'); setEditingPostId(null); }}
+                className="inline-flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors cursor-pointer group"
+              >
+                <ArrowLeft className="h-4.5 w-4.5 group-hover:-translate-x-0.5 transition-transform" />
+                Back to Dashboard
+              </button>
+            </div>
             
             {/* Courses / Packages Management */}
             {activeTab === 'courses' && (
@@ -2182,6 +2214,14 @@ export default function AdminDashboard() {
                                     <div className="opacity-0 group-hover/line:opacity-100 transition-opacity z-10 bg-white border border-slate-200 rounded-full p-1 shadow-sm flex items-center gap-1.5">
                                       <button
                                         type="button"
+                                        onClick={() => handleAddBlogBlockAtIndex(postIdx, blockIdx + 1, 'h1')}
+                                        className="w-5 h-5 bg-slate-50 hover:bg-blue-50 hover:text-blue-600 rounded-full flex items-center justify-center text-[10px] font-black text-slate-500"
+                                        title="Add H1 Heading"
+                                      >
+                                        H1
+                                      </button>
+                                      <button
+                                        type="button"
                                         onClick={() => handleAddBlogBlockAtIndex(postIdx, blockIdx + 1, 'paragraph')}
                                         className="w-5 h-5 bg-slate-50 hover:bg-blue-50 hover:text-blue-600 rounded-full flex items-center justify-center text-[10px] font-black text-slate-500"
                                         title="Add Paragraph"
@@ -2222,6 +2262,13 @@ export default function AdminDashboard() {
                             {/* Append Block buttons at the end */}
                             <div className="border-t border-slate-100 pt-6 flex flex-wrap items-center justify-center gap-2">
                               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-2">Add Content block:</span>
+                              <button
+                                type="button"
+                                onClick={() => handleAddBlogBlock(postIdx, 'h1')}
+                                className="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold py-1.5 px-3.5 rounded-xl text-xxs cursor-pointer"
+                              >
+                                + Heading H1
+                              </button>
                               <button
                                 type="button"
                                 onClick={() => handleAddBlogBlock(postIdx, 'h2')}
