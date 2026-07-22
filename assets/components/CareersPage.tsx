@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Briefcase, MapPin, Clock, ArrowLeft, Send, CheckCircle, Phone, User, Mail, FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import { Briefcase, MapPin, Clock, ArrowLeft, Send, CheckCircle, Phone, User, Mail, FileText, ChevronDown, ChevronUp, Upload, X } from 'lucide-react';
 import { JobOpening } from '../types';
 import { dataService } from '../services/dataService';
 import Footer from './Footer';
@@ -16,7 +16,7 @@ export default function CareersPage() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [experience, setExperience] = useState('');
-  const [resumeUrl, setResumeUrl] = useState('');
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -52,7 +52,7 @@ export default function CareersPage() {
     setEmail('');
     setPhone('');
     setExperience('');
-    setResumeUrl('');
+    setResumeFile(null);
   };
 
   const handleSubmitApplication = async (e: React.FormEvent) => {
@@ -69,7 +69,7 @@ export default function CareersPage() {
       fullName: fullName.trim(),
       mobileNumber: phone.trim(),
       email: email.trim(),
-      source: `Job Application: ${selectedJob?.title || 'Unknown Position'}`,
+      source: `Job Application: ${selectedJob?.title || 'Unknown Position'} (${resumeFile ? resumeFile.name : 'No Resume File'})`,
       createdAt: new Date().toLocaleString()
     };
 
@@ -91,30 +91,39 @@ export default function CareersPage() {
             { name: 'your-email', value: email.trim() },
             { name: 'your-phone', value: phone.trim() },
             { name: 'your-subject', value: `Job Application - ${selectedJob?.title}` },
-            { name: 'your-message', value: `Experience: ${experience.trim()}. Resume: ${resumeUrl.trim()}` }
+            { name: 'your-message', value: `Experience: ${experience.trim()}. Resume File: ${resumeFile ? resumeFile.name : 'None'}` }
           ]
         });
       } catch (gtmErr) {
         console.warn('GTM dataLayer push failed:', gtmErr);
       }
 
-      // 3. Submit to Web3Forms if configured
+      // 3. Submit to Web3Forms using multipart FormData for file attachment
       const web3FormsKey = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY;
       if (web3FormsKey && web3FormsKey !== "YOUR_WEB3FORMS_ACCESS_KEY_HERE") {
-        await fetch("https://api.web3forms.com/submit", {
+        const formData = new FormData();
+        formData.append("access_key", web3FormsKey);
+        formData.append("subject", `New Job Application - ${selectedJob?.title} - ${fullName.trim()}`);
+        formData.append("from_name", "UpDrive Careers Portal");
+        formData.append("name", fullName.trim());
+        formData.append("phone", phone.trim());
+        formData.append("email", email.trim());
+        formData.append("source", "Careers Form");
+        formData.append("message", `Position: ${selectedJob?.title}\nExperience Overview: ${experience.trim()}\nAttached File Name: ${resumeFile ? resumeFile.name : 'Not Provided'}`);
+        if (resumeFile) {
+          formData.append("attachment", resumeFile);
+        }
+
+        const response = await fetch("https://api.web3forms.com/submit", {
           method: "POST",
-          headers: { "Content-Type": "application/json", "Accept": "application/json" },
-          body: JSON.stringify({
-            access_key: web3FormsKey,
-            subject: `New Job Application - ${selectedJob?.title} - ${fullName.trim()}`,
-            from_name: "UpDrive Careers Portal",
-            name: fullName.trim(),
-            phone: phone.trim(),
-            email: email.trim(),
-            source: "Careers Form",
-            message: `Position: ${selectedJob?.title}\nExperience Overview: ${experience.trim()}\nResume / Profile Link: ${resumeUrl.trim() || 'Not Provided'}`
-          })
+          body: formData
         });
+
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          console.error("Web3Forms careers submission failed:", data);
+          throw new Error(data.message || "Failed to submit resume attachment");
+        }
       } else {
         await new Promise(resolve => setTimeout(resolve, 800));
       }
@@ -349,18 +358,48 @@ export default function CareersPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">Resume Link / LinkedIn URL (Optional)</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                      <FileText className="h-4 w-4" />
-                    </div>
+                  <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">Upload Resume * (PDF, DOC, DOCX, or Image - Max 3MB)</label>
+                  <div className="mt-1 flex items-center gap-3">
                     <input
-                      type="url"
-                      value={resumeUrl}
-                      onChange={(e) => setResumeUrl(e.target.value)}
-                      placeholder="https://drive.google.com/... or LinkedIn profile"
-                      className="w-full pl-10 pr-3.5 py-2 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-blue-500 bg-slate-55/40"
+                      type="file"
+                      accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                      id="resume-upload"
+                      className="hidden"
+                      required={!resumeFile}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          if (file.size > 3 * 1024 * 1024) {
+                            alert("File size exceeds 3MB. Please upload a smaller file.");
+                            return;
+                          }
+                          setResumeFile(file);
+                        }
+                      }}
                     />
+                    <label
+                      htmlFor="resume-upload"
+                      className="inline-flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold py-2 px-4 rounded-xl text-xs cursor-pointer transition-colors shadow-xs"
+                    >
+                      <Upload className="h-4 w-4" />
+                      Select File
+                    </label>
+                    {resumeFile ? (
+                      <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-xl px-3 py-1.5 text-xs text-blue-700 font-semibold max-w-[240px] truncate">
+                        <FileText className="h-4 w-4 shrink-0 text-blue-500" />
+                        <span className="truncate">{resumeFile.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => setResumeFile(null)}
+                          className="text-red-500 hover:text-red-750 p-0.5 rounded-full hover:bg-red-50 transition-colors shrink-0"
+                          title="Clear File"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-[10px] text-slate-400 font-bold uppercase">No file selected</span>
+                    )}
                   </div>
                 </div>
 
