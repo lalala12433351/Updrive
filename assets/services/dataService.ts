@@ -1,4 +1,4 @@
-import { PricingPackage } from '../types';
+import { PricingPackage, Testimonial } from '../types';
 import { GalleryItem } from '../components/Gallery';
 import { InstagramReel } from '../components/Testimonials';
 import { HeroSlide } from '../components/Hero';
@@ -11,6 +11,7 @@ const STORAGE_KEYS = {
   GALLERY: 'updrive_db_gallery',
   REELS: 'updrive_db_reels',
   HERO: 'updrive_db_hero',
+  REVIEWS: 'updrive_db_reviews',
 };
 
 // Safe localStorage wrapper to prevent QuotaExceededError crashes
@@ -245,6 +246,43 @@ export const dataService = {
       }
     } catch (e) {}
     return { success: true, mode: 'local', message: 'Hero banner saved to website storage!' };
+  },
+
+  // Get Reviews
+  async getReviews(): Promise<Testimonial[]> {
+    const serverData = await safeFetchJson<Testimonial[]>('/api/reviews');
+    if (serverData && Array.isArray(serverData) && serverData.length > 0) {
+      safeSetLocalStorage(STORAGE_KEYS.REVIEWS, JSON.stringify(serverData));
+      return serverData;
+    }
+    const local = localStorage.getItem(STORAGE_KEYS.REVIEWS);
+    if (local) {
+      try { return JSON.parse(local); } catch (e) {}
+    }
+    const defaultData = (dbData.reviews || []) as Testimonial[];
+    safeSetLocalStorage(STORAGE_KEYS.REVIEWS, JSON.stringify(defaultData));
+    return defaultData;
+  },
+
+  // Save Reviews
+  async saveReviews(reviews: Testimonial[]): Promise<{ success: boolean; mode: 'server' | 'local'; message?: string }> {
+    safeSetLocalStorage(STORAGE_KEYS.REVIEWS, JSON.stringify(reviews));
+    const token = localStorage.getItem('updrive_superadmin_token');
+    try {
+      const res = await fetchWithTimeout('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(reviews),
+      }, 800);
+      const contentType = res.headers.get('content-type');
+      if (res.ok && contentType && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (data.success) {
+          return { success: true, mode: 'server', message: 'Reviews saved to server!' };
+        }
+      }
+    } catch (e) {}
+    return { success: true, mode: 'local', message: 'Reviews saved to website storage!' };
   },
 
   // Upload Image (supports compressed Base64 Data URL fallback for static hosting)

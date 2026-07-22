@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { TESTIMONIALS } from '../data';
 import { Star, Quote, Instagram, Play } from 'lucide-react';
 import { dataService } from '../services/dataService';
+import { Testimonial } from '../types';
 
 export interface InstagramReel {
   id: string;
@@ -43,18 +43,22 @@ const INSTAGRAM_REELS = [
 
 export default function Testimonials() {
   const [reels, setReels] = useState<InstagramReel[]>([]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
 
   useEffect(() => {
-    const fetchReels = async () => {
+    const fetchData = async () => {
       const reelsData = await dataService.getReels();
       if (reelsData && reelsData.length > 0) {
         setReels(reelsData);
       } else {
         setReels(INSTAGRAM_REELS);
       }
+
+      const reviewsData = await dataService.getReviews();
+      setTestimonials(reviewsData);
     };
 
-    fetchReels();
+    fetchData();
   }, []);
 
   return (
@@ -76,7 +80,7 @@ export default function Testimonials() {
 
         {/* Testimonials Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {TESTIMONIALS.map((t, index) => (
+          {testimonials.map((t, index) => (
             <motion.div
               key={t.id}
               initial={{ opacity: 0, scale: 0.95, y: 15 }}

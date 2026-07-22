@@ -304,6 +304,27 @@ app.post('/api/hero', checkAuth, async (req, res) => {
   }
 });
 
+// Reviews (Testimonials) APIs
+app.get('/api/reviews', async (req, res) => {
+  const db = await readDB();
+  res.json(db.reviews || []);
+});
+
+app.post('/api/reviews', checkAuth, async (req, res) => {
+  const newReviews = req.body;
+  if (!Array.isArray(newReviews)) {
+    return res.status(400).json({ success: false, message: 'Invalid reviews data format.' });
+  }
+  const db = await readDB();
+  db.reviews = newReviews;
+  const success = await writeDB(db);
+  if (success) {
+    res.json({ success: true, message: 'Reviews updated successfully.' });
+  } else {
+    res.status(500).json({ success: false, message: 'Failed to write database.' });
+  }
+});
+
 // Serve the index.html for all other routes (Single Page App routing)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));

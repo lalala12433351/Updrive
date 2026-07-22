@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Settings, Plus, Trash2, LogOut, Globe, Lock, FileText, Image as ImageIcon, Upload, Check, Loader2, Save, X, Play } from 'lucide-react';
-import { PricingPackage } from '../types';
+import { Settings, Plus, Trash2, LogOut, Globe, Lock, FileText, Image as ImageIcon, Upload, Check, Loader2, Save, X, Play, Star } from 'lucide-react';
+import { PricingPackage, Testimonial } from '../types';
 import { GalleryItem } from './Gallery';
 import { InstagramReel } from './Testimonials';
 import { HeroSlide } from './Hero';
@@ -13,11 +13,12 @@ export default function AdminDashboard() {
   const [loginError, setLoginError] = useState<string>('');
   const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
 
-  const [activeTab, setActiveTab] = useState<'courses' | 'gallery' | 'reels' | 'hero'>('courses');
+  const [activeTab, setActiveTab] = useState<'courses' | 'gallery' | 'reels' | 'hero' | 'reviews'>('courses');
   const [packages, setPackages] = useState<PricingPackage[]>([]);
   const [gallery, setGallery] = useState<GalleryItem[]>([]);
   const [reels, setReels] = useState<InstagramReel[]>([]);
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([]);
+  const [reviews, setReviews] = useState<Testimonial[]>([]);
   const [isLoadingData, setIsLoadingData] = useState<boolean>(false);
 
   // Form saving states
@@ -25,6 +26,7 @@ export default function AdminDashboard() {
   const [isSavingGallery, setIsSavingGallery] = useState<boolean>(false);
   const [isSavingReels, setIsSavingReels] = useState<boolean>(false);
   const [isSavingHero, setIsSavingHero] = useState<boolean>(false);
+  const [isSavingReviews, setIsSavingReviews] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isFetchingCoverIdx, setIsFetchingCoverIdx] = useState<number | null>(null);
 
@@ -93,6 +95,9 @@ export default function AdminDashboard() {
 
       const heroData = await dataService.getHeroSlides();
       setHeroSlides(heroData);
+
+      const reviewsData = await dataService.getReviews();
+      setReviews(reviewsData);
     } catch (err) {
       console.error('Error fetching admin data:', err);
       showToast('error', 'Failed to load database records.');
@@ -368,7 +373,40 @@ export default function AdminDashboard() {
       }
     };
   };
+  // Reviews (Testimonials) management helpers
+  const handleAddReview = () => {
+    const newReview: Testimonial = {
+      id: 't-' + Date.now(),
+      stars: 5,
+      text: 'The training class exceeded my expectations. Very professional team!',
+      author: 'Aarav S.',
+      avatarSeed: 'Aarav' + Date.now(),
+      role: 'Confident Driver, Cochin'
+    };
+    setReviews([...reviews, newReview]);
+  };
 
+  const handleDeleteReview = (id: string) => {
+    setReviews(reviews.filter(r => r.id !== id));
+  };
+
+  const handleReviewFieldChange = (index: number, field: keyof Testimonial, value: any) => {
+    const updated = [...reviews];
+    updated[index] = { ...updated[index], [field]: value };
+    setReviews(updated);
+  };
+
+  const handleSaveReviews = async () => {
+    setIsSavingReviews(true);
+    try {
+      const result = await dataService.saveReviews(reviews);
+      showToast('success', result.message || 'Reviews saved successfully!');
+    } catch (err) {
+      showToast('error', 'Error saving reviews.');
+    } finally {
+      setIsSavingReviews(false);
+    }
+  };
   // Non-authenticated view (Login form)
   if (!isAuthenticated) {
     return (
@@ -558,6 +596,18 @@ export default function AdminDashboard() {
           >
             <Settings className="h-4.5 w-4.5" />
             Manage Hero Banner
+          </button>
+
+          <button
+            onClick={() => setActiveTab('reviews')}
+            className={`py-3.5 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
+              activeTab === 'reviews'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <Star className="h-4.5 w-4.5" />
+            Manage Reviews
           </button>
         </div>
 
@@ -1295,6 +1345,143 @@ export default function AdminDashboard() {
                       <>
                         <Save className="h-4.5 w-4.5" />
                         Save Hero Slides
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Reviews (Testimonials) Management */}
+            {activeTab === 'reviews' && (
+              <div className="space-y-6">
+                <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-black text-slate-900 tracking-tight">Customer Reviews & Testimonials</h3>
+                    <p className="text-slate-500 text-xs">Manage the student success stories and star reviews displayed on the website.</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handleAddReview}
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 px-4 rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add New Review
+                    </button>
+                    
+                    <button
+                      onClick={handleSaveReviews}
+                      disabled={isSavingReviews}
+                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-extrabold py-2.5 px-4.5 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-md shadow-blue-500/10 cursor-pointer"
+                    >
+                      {isSavingReviews ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4" />
+                          Save All Reviews
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  {reviews.map((review, index) => (
+                    <div key={review.id} className="bg-white border border-slate-200 rounded-3xl p-6 relative shadow-xs hover:border-slate-350 transition-colors">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-4 mb-5 gap-3">
+                        <span className="inline-block px-2.5 py-1 text-xxs font-black text-blue-600 bg-blue-50 rounded-lg uppercase tracking-wider">
+                          Review Card: {review.id}
+                        </span>
+                        <button
+                          onClick={() => handleDeleteReview(review.id)}
+                          className="text-xs font-bold text-red-655 hover:text-red-750 px-3.5 py-1.5 border border-red-150 hover:bg-red-50 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Delete Review
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                        <div className="md:col-span-8 space-y-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div className="space-y-1">
+                              <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">Author Name</label>
+                              <input
+                                type="text"
+                                value={review.author}
+                                onChange={(e) => handleReviewFieldChange(index, 'author', e.target.value)}
+                                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-blue-500"
+                              />
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">Role / Location Info</label>
+                              <input
+                                type="text"
+                                value={review.role || ''}
+                                onChange={(e) => handleReviewFieldChange(index, 'role', e.target.value)}
+                                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-blue-500"
+                              />
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">Star Rating (1 - 5)</label>
+                              <select
+                                value={review.stars}
+                                onChange={(e) => handleReviewFieldChange(index, 'stars', parseInt(e.target.value) || 5)}
+                                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-blue-500 bg-white"
+                              >
+                                <option value="5">⭐⭐⭐⭐⭐ (5 Stars)</option>
+                                <option value="4">⭐⭐⭐⭐ (4 Stars)</option>
+                                <option value="3">⭐⭐⭐ (3 Stars)</option>
+                                <option value="2">⭐⭐ (2 Stars)</option>
+                                <option value="1">⭐ (1 Star)</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">Review Message / Feedback</label>
+                            <textarea
+                              rows={3}
+                              value={review.text}
+                              onChange={(e) => handleReviewFieldChange(index, 'text', e.target.value)}
+                              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-blue-500 resize-none leading-relaxed"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="md:col-span-4 border-t md:border-t-0 md:border-l border-slate-100 pt-5 md:pt-0 md:pl-6 flex flex-col justify-center items-center text-center space-y-3">
+                          <span className="block text-xxs font-black text-slate-455 uppercase tracking-wider">Profile Avatar Preview</span>
+                          <div className="w-16 h-16 rounded-full bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center font-bold text-xl shadow-inner">
+                            {review.author ? review.author.charAt(0) : 'U'}
+                          </div>
+                          <div className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">Avatar generated dynamically</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex justify-end pt-4">
+                  <button
+                    onClick={handleSaveReviews}
+                    disabled={isSavingReviews}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-extrabold py-3 px-8 rounded-xl text-sm flex items-center gap-1.5 transition-all shadow-lg shadow-blue-500/10 cursor-pointer"
+                  >
+                    {isSavingReviews ? (
+                      <>
+                        <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4.5 w-4.5" />
+                        Save All Reviews
                       </>
                     )}
                   </button>

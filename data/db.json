@@ -171,5 +171,31 @@
       "btn2Text": "Check Our Rating",
       "btn2Url": "#testimonials"
     }
+  ],
+  "reviews": [
+    {
+      "id": "t1",
+      "stars": 5,
+      "text": "The trainer was patient, polite, I finally drive in traffic without panic. Highly recommend",
+      "author": "Ananya K.",
+      "avatarSeed": "Ananya",
+      "role": "New Car Owner, Bangalore"
+    },
+    {
+      "id": "t2",
+      "stars": 5,
+      "text": "I learned more in 4 sessions at UpDrive than I learned in years! Supportive team & real roads.",
+      "author": "Sneha R.",
+      "avatarSeed": "Sneha",
+      "role": "Working Mother, Hyderabad"
+    },
+    {
+      "id": "t3",
+      "stars": 5,
+      "text": "They build skills & confidence. Forever thankful for my UpDrive journey.",
+      "author": "Meera C.",
+      "avatarSeed": "Meera",
+      "role": "College Student, Mumbai"
+    }
   ]
 }
