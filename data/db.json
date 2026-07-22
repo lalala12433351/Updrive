@@ -197,5 +197,25 @@
       "avatarSeed": "Meera",
       "role": "College Student, Mumbai"
     }
+  ],
+  "jobs": [
+    {
+      "id": "job-1",
+      "title": "Professional Driving Instructor (Female)",
+      "location": "Bangalore, Karnataka",
+      "type": "Full-time / Part-time",
+      "description": "We are seeking patient, well-mannered female driving instructors to train students on automatic and manual cars. You will come to student doorsteps to guide them empathetically.",
+      "requirements": "- Valid Indian Driving License (LMV) for at least 3 years\n- Patient, respectful and supportive communication skills\n- Punctual, reliable and empathetic trainer profile\n- Bilingual competency (English/Kannada/Hindi/Tamil) is a plus",
+      "isActive": true
+    },
+    {
+      "id": "job-2",
+      "title": "Customer Support Executive",
+      "location": "Kochi, Kerala (Remote)",
+      "type": "Full-time",
+      "description": "Handle incoming booking calls, follow-up on inquiries, align student bookings with regional instructors, and support daily query resolution.",
+      "requirements": "- 1+ years experience in customer service or tele-sales\n- Fluent in English and Malayalam/Tamil/Kannada\n- Comfort working with spreadsheet trackers and call routing systems",
+      "isActive": true
+    }
   ]
 }

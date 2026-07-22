@@ -11,6 +11,7 @@ import WhatsAppButton from './components/WhatsAppButton';
 import TermsModal from './components/TermsModal';
 import Gallery, { GalleryItem } from './components/Gallery';
 import AdminDashboard from './components/AdminDashboard';
+import CareersPage from './components/CareersPage';
 import { PricingPackage } from './types';
 import { dataService } from './services/dataService';
 
@@ -19,8 +20,9 @@ export default function App() {
   const [selectedLocation, setSelectedLocation] = useState<string>('kerala');
   const [showTermsModal, setShowTermsModal] = useState<boolean>(false);
 
-  // State-based routing for /admin view
+  // State-based routing for /admin and /careers view
   const [isAdminView, setIsAdminView] = useState<boolean>(false);
+  const [isCareersView, setIsCareersView] = useState<boolean>(false);
   const [packages, setPackages] = useState<PricingPackage[]>([]);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -29,8 +31,14 @@ export default function App() {
     const isSuperAdmin = window.location.pathname.endsWith('/superadmin') || 
                          window.location.hash === '#superadmin' || 
                          window.location.search.includes('superadmin');
+    const isCareers = window.location.pathname.endsWith('/careers') || 
+                      window.location.hash === '#careers' || 
+                      window.location.search.includes('careers');
     if (isSuperAdmin) {
       setIsAdminView(true);
+      setIsLoading(false);
+    } else if (isCareers) {
+      setIsCareersView(true);
       setIsLoading(false);
     } else {
       // Fetch dynamic content on mount
@@ -71,6 +79,10 @@ export default function App() {
 
   if (isAdminView) {
     return <AdminDashboard />;
+  }
+
+  if (isCareersView) {
+    return <CareersPage />;
   }
 
   return (

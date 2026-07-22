@@ -115,6 +115,12 @@ export default function Footer({ onShowTerms }: FooterProps) {
             >
               Terms & Conditions
             </span>
+            <a 
+              href="/careers"
+              className="hover:text-slate-300 transition-colors cursor-pointer"
+            >
+              Careers
+            </a>
             <span className="hover:text-slate-300 transition-colors cursor-pointer">Student Safety Code</span>
           </div>
         </div>

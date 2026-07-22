@@ -62,22 +62,22 @@ export default function Hero({ onScrollToSection }: HeroProps) {
   const slide = slides[currentIndex] || DEFAULT_SLIDE;
 
   return (
-    <section id="hero" className="relative overflow-hidden bg-white pt-10 pb-20 md:py-24 lg:py-32 min-h-[620px] flex items-center">
+    <section id="hero" className="relative overflow-hidden bg-white pt-8 pb-16 md:py-24 lg:py-32 flex items-center">
       {/* Background Soft Gradients */}
       <div className="absolute top-0 right-0 -z-10 h-[600px] w-[500px] bg-sky-50/50 rounded-full blur-3xl" />
       <div className="absolute bottom-0 left-0 -z-10 h-[400px] w-[400px] bg-blue-50/30 rounded-full blur-3xl" />
 
-      {/* Viewport Container with fixed boundaries */}
-      <div className="max-w-7xl mx-auto w-full overflow-hidden px-4 sm:px-6 lg:px-8 relative min-h-[650px] sm:min-h-[580px] lg:min-h-[480px]">
+      {/* Viewport Container with dynamic heights */}
+      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 relative">
         
-        <AnimatePresence mode="popLayout" initial={false}>
+        <AnimatePresence mode="wait" initial={false}>
           <motion.div 
             key={currentIndex}
-            initial={{ opacity: 0, x: '100%' }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: '-100%' }}
-            transition={{ ease: [0.16, 1, 0.3, 1], duration: 0.75 }}
-            className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center w-full"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ ease: "easeInOut", duration: 0.35 }}
+            className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center w-full"
           >
             
             {/* Hero Left Content */}
@@ -88,7 +88,7 @@ export default function Hero({ onScrollToSection }: HeroProps) {
                 </span>
               </div>
               
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-tight whitespace-pre-line">
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-tight whitespace-pre-line">
                 {slide.title}
               </h1>
               
@@ -172,7 +172,7 @@ export default function Hero({ onScrollToSection }: HeroProps) {
 
         {/* Dots indicators for carousel (under the track) */}
         {slides.length > 1 && (
-          <div className="flex gap-2 pt-10 justify-start relative z-30">
+          <div className="flex gap-2 pt-6 md:pt-10 justify-center lg:justify-start relative z-30">
             {slides.map((_, idx) => (
               <button
                 key={idx}

@@ -325,6 +325,27 @@ app.post('/api/reviews', checkAuth, async (req, res) => {
   }
 });
 
+// Job Openings (Careers) APIs
+app.get('/api/jobs', async (req, res) => {
+  const db = await readDB();
+  res.json(db.jobs || []);
+});
+
+app.post('/api/jobs', checkAuth, async (req, res) => {
+  const newJobs = req.body;
+  if (!Array.isArray(newJobs)) {
+    return res.status(400).json({ success: false, message: 'Invalid jobs data format.' });
+  }
+  const db = await readDB();
+  db.jobs = newJobs;
+  const success = await writeDB(db);
+  if (success) {
+    res.json({ success: true, message: 'Job openings updated successfully.' });
+  } else {
+    res.status(500).json({ success: false, message: 'Failed to write database.' });
+  }
+});
+
 // Serve the index.html for all other routes (Single Page App routing)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));

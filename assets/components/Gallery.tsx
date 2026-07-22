@@ -111,7 +111,7 @@ export default function Gallery({ items }: GalleryProps) {
               </button>
 
               {/* Main Image */}
-              <div className="w-full overflow-hidden aspect-16/10 bg-slate-900 flex items-center justify-center">
+              <div className="w-full overflow-hidden aspect-[4/3] sm:aspect-16/10 bg-slate-900 flex items-center justify-center">
                 <img
                   src={activeImage.url}
                   alt={activeImage.caption}

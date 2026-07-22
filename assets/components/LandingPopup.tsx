@@ -150,14 +150,15 @@ export default function LandingPopup({ onNewBookingAdded }: LandingPopupProps) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed top-24 right-4 z-50 w-full max-w-sm px-2 sm:px-0">
+        <div className="fixed bottom-4 md:bottom-auto md:top-24 left-4 right-4 md:left-auto md:right-4 z-50 w-auto md:w-full md:max-w-sm">
           
           {/* Elegant Float Card without dark backdrop */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, x: 50, y: -20 }}
-            animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, x: 50, y: -20 }}
-            className="bg-white rounded-2xl p-5 sm:p-6 shadow-2xl shadow-blue-900/15 border border-slate-200/80 w-full relative overflow-hidden text-left"
+            initial={{ opacity: 0, y: 40, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 40, scale: 0.95 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+            className="bg-white rounded-2xl p-5 sm:p-6 shadow-2xl shadow-blue-900/20 border border-slate-200/80 w-full relative overflow-hidden text-left"
           >
             {/* Soft decorative accent badge at top */}
             <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-blue-500 to-indigo-600" />

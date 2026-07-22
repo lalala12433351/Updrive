@@ -1,4 +1,4 @@
-import { PricingPackage, Testimonial } from '../types';
+import { PricingPackage, Testimonial, JobOpening } from '../types';
 import { GalleryItem } from '../components/Gallery';
 import { InstagramReel } from '../components/Testimonials';
 import { HeroSlide } from '../components/Hero';
@@ -12,6 +12,7 @@ const STORAGE_KEYS = {
   REELS: 'updrive_db_reels',
   HERO: 'updrive_db_hero',
   REVIEWS: 'updrive_db_reviews',
+  JOBS: 'updrive_db_jobs',
 };
 
 // Safe localStorage wrapper to prevent QuotaExceededError crashes
@@ -283,6 +284,43 @@ export const dataService = {
       }
     } catch (e) {}
     return { success: true, mode: 'local', message: 'Reviews saved to website storage!' };
+  },
+
+  // Get Job Openings (Careers)
+  async getJobs(): Promise<JobOpening[]> {
+    const serverData = await safeFetchJson<JobOpening[]>('/api/jobs');
+    if (serverData && Array.isArray(serverData) && serverData.length > 0) {
+      safeSetLocalStorage(STORAGE_KEYS.JOBS, JSON.stringify(serverData));
+      return serverData;
+    }
+    const local = localStorage.getItem(STORAGE_KEYS.JOBS);
+    if (local) {
+      try { return JSON.parse(local); } catch (e) {}
+    }
+    const defaultData = (dbData.jobs || []) as JobOpening[];
+    safeSetLocalStorage(STORAGE_KEYS.JOBS, JSON.stringify(defaultData));
+    return defaultData;
+  },
+
+  // Save Job Openings (Careers)
+  async saveJobs(jobs: JobOpening[]): Promise<{ success: boolean; mode: 'server' | 'local'; message?: string }> {
+    safeSetLocalStorage(STORAGE_KEYS.JOBS, JSON.stringify(jobs));
+    const token = localStorage.getItem('updrive_superadmin_token');
+    try {
+      const res = await fetchWithTimeout('/api/jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(jobs),
+      }, 800);
+      const contentType = res.headers.get('content-type');
+      if (res.ok && contentType && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (data.success) {
+          return { success: true, mode: 'server', message: 'Careers/Jobs saved to server!' };
+        }
+      }
+    } catch (e) {}
+    return { success: true, mode: 'local', message: 'Careers/Jobs saved to website storage!' };
   },
 
   // Upload Image (supports compressed Base64 Data URL fallback for static hosting)

@@ -2,7 +2,7 @@ import { motion } from 'motion/react';
 
 export default function WhatsAppButton() {
   return (
-    <div className="fixed bottom-6 right-6 z-[9999] flex items-center justify-center">
+    <div className="fixed bottom-24 sm:bottom-6 right-6 z-[9999] flex items-center justify-center">
       {/* Decorative breathing/pulsing green aura */}
       <div className="absolute inset-0 bg-[#25D366] rounded-full animate-ping opacity-25 scale-125 pointer-events-none" />
       

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Settings, Plus, Trash2, LogOut, Globe, Lock, FileText, Image as ImageIcon, Upload, Check, Loader2, Save, X, Play, Star } from 'lucide-react';
-import { PricingPackage, Testimonial } from '../types';
+import { Settings, Plus, Trash2, LogOut, Globe, Lock, FileText, Image as ImageIcon, Upload, Check, Loader2, Save, X, Play, Star, Briefcase } from 'lucide-react';
+import { PricingPackage, Testimonial, JobOpening } from '../types';
 import { GalleryItem } from './Gallery';
 import { InstagramReel } from './Testimonials';
 import { HeroSlide } from './Hero';
@@ -13,12 +13,13 @@ export default function AdminDashboard() {
   const [loginError, setLoginError] = useState<string>('');
   const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
 
-  const [activeTab, setActiveTab] = useState<'courses' | 'gallery' | 'reels' | 'hero' | 'reviews'>('courses');
+  const [activeTab, setActiveTab] = useState<'courses' | 'gallery' | 'reels' | 'hero' | 'reviews' | 'jobs'>('courses');
   const [packages, setPackages] = useState<PricingPackage[]>([]);
   const [gallery, setGallery] = useState<GalleryItem[]>([]);
   const [reels, setReels] = useState<InstagramReel[]>([]);
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([]);
   const [reviews, setReviews] = useState<Testimonial[]>([]);
+  const [jobs, setJobs] = useState<JobOpening[]>([]);
   const [isLoadingData, setIsLoadingData] = useState<boolean>(false);
 
   // Form saving states
@@ -27,6 +28,7 @@ export default function AdminDashboard() {
   const [isSavingReels, setIsSavingReels] = useState<boolean>(false);
   const [isSavingHero, setIsSavingHero] = useState<boolean>(false);
   const [isSavingReviews, setIsSavingReviews] = useState<boolean>(false);
+  const [isSavingJobs, setIsSavingJobs] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isFetchingCoverIdx, setIsFetchingCoverIdx] = useState<number | null>(null);
 
@@ -99,6 +101,9 @@ export default function AdminDashboard() {
 
       const reviewsData = await dataService.getReviews();
       setReviews(reviewsData);
+
+      const jobsData = await dataService.getJobs();
+      setJobs(jobsData);
     } catch (err) {
       console.error('Error fetching admin data:', err);
       showToast('error', 'Failed to load database records.');
@@ -433,6 +438,42 @@ export default function AdminDashboard() {
       }
     };
   };
+
+  // Job openings management helpers
+  const handleAddJob = () => {
+    const newJob: JobOpening = {
+      id: 'job-' + Date.now(),
+      title: 'Professional Driving Instructor (Female)',
+      location: 'Bangalore, Karnataka',
+      type: 'Full-time / Part-time',
+      description: 'We are seeking patient, well-mannered female driving instructors to train students on automatic and manual cars.',
+      requirements: '- Valid License for at least 3 years\n- Patient and supportive communication skills',
+      isActive: true
+    };
+    setJobs([...jobs, newJob]);
+  };
+
+  const handleDeleteJob = (id: string) => {
+    setJobs(jobs.filter(j => j.id !== id));
+  };
+
+  const handleJobFieldChange = (index: number, field: keyof JobOpening, value: any) => {
+    const updated = [...jobs];
+    updated[index] = { ...updated[index], [field]: value } as JobOpening;
+    setJobs(updated);
+  };
+
+  const handleSaveJobs = async () => {
+    setIsSavingJobs(true);
+    try {
+      const result = await dataService.saveJobs(jobs);
+      showToast('success', result.message || 'Job openings saved successfully!');
+    } catch (err) {
+      showToast('error', 'Error saving job openings.');
+    } finally {
+      setIsSavingJobs(false);
+    }
+  };
   // Non-authenticated view (Login form)
   if (!isAuthenticated) {
     return (
@@ -634,6 +675,18 @@ export default function AdminDashboard() {
           >
             <Star className="h-4.5 w-4.5" />
             Manage Reviews
+          </button>
+
+          <button
+            onClick={() => setActiveTab('jobs')}
+            className={`py-3.5 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
+              activeTab === 'jobs'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <Briefcase className="h-4.5 w-4.5" />
+            Manage Careers
           </button>
         </div>
 
@@ -1550,6 +1603,149 @@ export default function AdminDashboard() {
                       <>
                         <Save className="h-4.5 w-4.5" />
                         Save All Reviews
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Careers (Job Openings) Management */}
+            {activeTab === 'jobs' && (
+              <div className="space-y-6">
+                <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-black text-slate-900 tracking-tight">Careers & Job Openings</h3>
+                    <p className="text-slate-500 text-xs">Manage active job openings, requirements, and listings on the Careers portal.</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handleAddJob}
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 px-4 rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add Job Position
+                    </button>
+                    
+                    <button
+                      onClick={handleSaveJobs}
+                      disabled={isSavingJobs}
+                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-extrabold py-2.5 px-4.5 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-md shadow-blue-500/10 cursor-pointer"
+                    >
+                      {isSavingJobs ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4" />
+                          Save Careers Info
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  {jobs.map((job, index) => (
+                    <div key={job.id} className="bg-white border border-slate-200 rounded-3xl p-6 relative shadow-xs hover:border-slate-350 transition-colors">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-4 mb-5 gap-3 text-left">
+                        <div className="flex items-center gap-3">
+                          <span className="inline-block px-2.5 py-1 text-xxs font-black text-blue-600 bg-blue-50 rounded-lg uppercase tracking-wider">
+                            Job ID: {job.id}
+                          </span>
+                          <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-700">
+                            <input
+                              type="checkbox"
+                              checked={job.isActive}
+                              onChange={(e) => handleJobFieldChange(index, 'isActive', e.target.checked)}
+                              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
+                            />
+                            Active Listing
+                          </label>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteJob(job.id)}
+                          className="text-xs font-bold text-red-655 hover:text-red-750 px-3.5 py-1.5 border border-red-150 hover:bg-red-50 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Delete Position
+                        </button>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
+                          <div className="space-y-1">
+                            <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">Job Title *</label>
+                            <input
+                              type="text"
+                              value={job.title}
+                              onChange={(e) => handleJobFieldChange(index, 'title', e.target.value)}
+                              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-blue-500"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">Location / Office *</label>
+                            <input
+                              type="text"
+                              value={job.location}
+                              onChange={(e) => handleJobFieldChange(index, 'location', e.target.value)}
+                              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-blue-500"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">Job Type (e.g. Full-time) *</label>
+                            <input
+                              type="text"
+                              value={job.type}
+                              onChange={(e) => handleJobFieldChange(index, 'type', e.target.value)}
+                              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-blue-500"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1 text-left">
+                          <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">Short Job Description</label>
+                          <textarea
+                            rows={2}
+                            value={job.description}
+                            onChange={(e) => handleJobFieldChange(index, 'description', e.target.value)}
+                            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-blue-500 resize-none leading-relaxed"
+                          />
+                        </div>
+
+                        <div className="space-y-1 text-left">
+                          <label className="text-xxs font-black text-slate-455 uppercase tracking-wider">Requirements & Qualifications (use \n or bullet points)</label>
+                          <textarea
+                            rows={4}
+                            value={job.requirements}
+                            onChange={(e) => handleJobFieldChange(index, 'requirements', e.target.value)}
+                            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-blue-500 resize-none leading-relaxed"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex justify-end pt-4">
+                  <button
+                    onClick={handleSaveJobs}
+                    disabled={isSavingJobs}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-extrabold py-3 px-8 rounded-xl text-sm flex items-center gap-1.5 transition-all shadow-lg shadow-blue-500/10 cursor-pointer"
+                  >
+                    {isSavingJobs ? (
+                      <>
+                        <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4.5 w-4.5" />
+                        Save Careers Info
                       </>
                     )}
                   </button>

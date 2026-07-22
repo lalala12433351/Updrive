@@ -38,3 +38,13 @@ export interface BookingSubmission {
   location?: string;
   createdAt: string;
 }
+
+export interface JobOpening {
+  id: string;
+  title: string;
+  location: string;
+  type: string; // e.g. "Full-time", "Part-time"
+  description: string;
+  requirements: string;
+  isActive: boolean;
+}
