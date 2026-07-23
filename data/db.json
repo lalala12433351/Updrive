@@ -55,7 +55,8 @@
         "karnataka",
         "tamilnadu",
         "telangana"
-      ]
+      ],
+      "isPopular": true
     },
     {
       "id": "split-6-updrive",
@@ -93,7 +94,8 @@
         "karnataka",
         "tamilnadu",
         "telangana"
-      ]
+      ],
+      "isPopular": true
     },
     {
       "id": "split-6-mixed",

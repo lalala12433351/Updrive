@@ -83,7 +83,8 @@ export const PRICING_PACKAGES: PricingPackage[] = [
       "Flexible split sessions (1 to 5 days)",
       "Dual-control car provided for safety",
       "Complete driving confidence report"
-    ]
+    ],
+    isPopular: true
   },
   {
     id: 'split-6-updrive',

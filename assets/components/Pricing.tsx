@@ -205,14 +205,23 @@ export default function Pricing({
       hoursText = "7 HOURS";
     }
 
+    const isPopular = pkg.isPopular === true;
+
     return (
       <div 
         className={`rounded-2xl p-5 border text-left flex flex-col justify-between transition-all bg-white relative hover:shadow-md ${
           isSelected 
             ? 'border-blue-500 ring-2 ring-blue-500/10' 
-            : 'border-slate-100 shadow-xs'
+            : isPopular
+              ? 'border-purple-400 shadow-md ring-2 ring-purple-450/5'
+              : 'border-slate-100 shadow-xs'
         }`}
       >
+        {isPopular && (
+          <span className="absolute -top-2.5 right-4 px-2.5 py-0.5 bg-gradient-to-r from-purple-600 to-indigo-605 text-white rounded-full text-[8px] font-black uppercase tracking-wider shadow-sm select-none">
+            Most Popular
+          </span>
+        )}
         <div className="space-y-3.5">
           {/* Days Indicator */}
           <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">

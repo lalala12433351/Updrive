@@ -367,6 +367,61 @@ app.post('/api/blogs', checkAuth, async (req, res) => {
   }
 });
 
+// Dynamic Sitemap XML Endpoint
+app.get('/sitemap.xml', async (req, res) => {
+  try {
+    const db = await readDB();
+    const blogs = db.blogs || [];
+    const nowStr = new Date().toISOString().split('T')[0];
+    const publishedBlogs = blogs.filter(b => b.isPublished || (b.status === 'published') || (b.status === 'scheduled' && b.scheduledPublishDate <= nowStr));
+    
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+    xml += `  <url>\n    <loc>${req.protocol}://${req.get('host')}/</loc>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n`;
+    xml += `  <url>\n    <loc>${req.protocol}://${req.get('host')}/blog</loc>\n    <changefreq>daily</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
+    
+    publishedBlogs.forEach(post => {
+      xml += `  <url>\n    <loc>${req.protocol}://${req.get('host')}/blog/${post.slug}</loc>\n    <lastmod>${post.createdAt}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>\n`;
+    });
+    
+    xml += `</urlset>`;
+    res.header('Content-Type', 'application/xml');
+    res.send(xml);
+  } catch (err) {
+    res.status(500).send('Error generating sitemap');
+  }
+});
+
+// Dynamic RSS Feed XML Endpoint
+app.get('/blog/feed.xml', async (req, res) => {
+  try {
+    const db = await readDB();
+    const blogs = db.blogs || [];
+    const nowStr = new Date().toISOString().split('T')[0];
+    const publishedBlogs = blogs.filter(b => b.isPublished || (b.status === 'published') || (b.status === 'scheduled' && b.scheduledPublishDate <= nowStr));
+
+    let xml = `<?xml version="1.0" encoding="UTF-8" ?>\n<rss version="2.0">\n<channel>\n`;
+    xml += `  <title>UpDrive Driving School Blog</title>\n`;
+    xml += `  <link>${req.protocol}://${req.get('host')}/blog</link>\n`;
+    xml += `  <description>Empathetic, judgment-free training and professional driving lessons insights.</description>\n`;
+    
+    publishedBlogs.forEach(post => {
+      xml += `  <item>\n`;
+      xml += `    <title>${post.title}</title>\n`;
+      xml += `    <link>${req.protocol}://${req.get('host')}/blog/${post.slug}</link>\n`;
+      xml += `    <description>${post.metaDescription}</description>\n`;
+      xml += `    <pubDate>${new Date(post.createdAt).toUTCString()}</pubDate>\n`;
+      xml += `    <guid>${req.protocol}://${req.get('host')}/blog/${post.slug}</guid>\n`;
+      xml += `  </item>\n`;
+    });
+    
+    xml += `</channel>\n</rss>`;
+    res.header('Content-Type', 'application/xml');
+    res.send(xml);
+  } catch (err) {
+    res.status(500).send('Error generating RSS feed');
+  }
+});
+
 // Serve the index.html for all other routes (Single Page App routing)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
