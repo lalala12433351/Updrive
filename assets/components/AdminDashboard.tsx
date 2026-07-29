@@ -32,7 +32,7 @@ export default function AdminDashboard() {
   const [isSavingReviews, setIsSavingReviews] = useState<boolean>(false);
   const [isSavingJobs, setIsSavingJobs] = useState<boolean>(false);
   const [isSavingBlogs, setIsSavingBlogs] = useState<boolean>(false);
-  const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
   const [isFetchingCoverIdx, setIsFetchingCoverIdx] = useState<number | null>(null);
 
   // Blog Portal States & Debounced Autosave
@@ -99,7 +99,7 @@ export default function AdminDashboard() {
     return () => clearTimeout(timer);
   }, [blogs, editingPostId]);
 
-  const showToast = (type: 'success' | 'error', text: string) => {
+  const showToast = (type: 'success' | 'error' | 'info', text: string) => {
     setToastMessage({ type, text });
     setTimeout(() => setToastMessage(null), 3000);
   };
@@ -548,6 +548,15 @@ export default function AdminDashboard() {
       coverImage: '',
       createdAt: new Date().toISOString().split('T')[0],
       isPublished: false,
+      status: 'draft',
+      categories: ['Driving Tips'],
+      category: 'Driving Tips',
+      tags: ['Beginners'],
+      views: 0,
+      avgTimeOnPageSeconds: 0,
+      likes: 0,
+      shares: 0,
+      bookingConversions: 0,
       blocks: [
         { id: 'block-' + Date.now() + '-1', type: 'paragraph', content: 'Type your introduction paragraph here...' }
       ]
@@ -642,7 +651,7 @@ export default function AdminDashboard() {
     setBlogs(updated);
   };
 
-  const handleBlogBlockFieldChange = (postIndex: number, blockIndex: number, field: 'content' | 'mediaUrl', value: string) => {
+  const handleBlogBlockFieldChange = (postIndex: number, blockIndex: number, field: keyof import('../types').BlogBlock, value: any) => {
     const updated = [...blogs];
     const updatedBlocks = [...updated[postIndex].blocks];
     updatedBlocks[blockIndex] = { ...updatedBlocks[blockIndex], [field]: value };

@@ -69,9 +69,9 @@ export default function Hero({ onScrollToSection }: HeroProps) {
 
       {/* Viewport Container with dynamic heights */}
       <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 relative">
-        
+
         <AnimatePresence mode="wait" initial={false}>
-          <motion.div 
+          <motion.div
             key={currentIndex}
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
@@ -79,7 +79,7 @@ export default function Hero({ onScrollToSection }: HeroProps) {
             transition={{ ease: "easeInOut", duration: 0.35 }}
             className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center w-full"
           >
-            
+
             {/* Hero Left Content */}
             <div className="lg:col-span-6 flex flex-col justify-center text-left space-y-6 md:space-y-8 pr-4">
               <div>
@@ -87,15 +87,15 @@ export default function Hero({ onScrollToSection }: HeroProps) {
                   {slide.badge}
                 </span>
               </div>
-              
+
               <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-tight whitespace-pre-line">
                 {slide.title}
               </h1>
-              
+
               <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-xl">
                 {slide.subtitle}
               </p>
-              
+
               {/* Buttons Row */}
               <div className="pt-2 flex flex-wrap gap-4 items-center">
                 {slide.btn1Text && (
@@ -137,16 +137,19 @@ export default function Hero({ onScrollToSection }: HeroProps) {
             {/* Hero Right Visual Column */}
             <div className="lg:col-span-6 relative mt-10 lg:mt-0">
               <div className="relative mx-auto max-w-[540px] lg:max-w-none">
-                
+
                 {/* Photo Frame Container */}
                 <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-100 bg-slate-100 aspect-[4/3] sm:aspect-16/10 lg:aspect-4/3">
                   <img
-                    src={slide.imageUrl}
+                    src={slide.imageUrl || drivingInstructorStudent}
                     alt={slide.title}
                     className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = drivingInstructorStudent;
+                    }}
                   />
-                  
+
                   {/* Overlay Dark Vignette on Bottom */}
                   <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-slate-950/40 to-transparent pointer-events-none z-10" />
                 </div>
@@ -177,9 +180,8 @@ export default function Hero({ onScrollToSection }: HeroProps) {
               <button
                 key={idx}
                 onClick={() => setCurrentIndex(idx)}
-                className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
-                  currentIndex === idx ? 'w-8 bg-blue-600' : 'w-2.5 bg-slate-200 hover:bg-slate-400'
-                }`}
+                className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${currentIndex === idx ? 'w-8 bg-blue-600' : 'w-2.5 bg-slate-200 hover:bg-slate-400'
+                  }`}
                 aria-label={`Go to slide ${idx + 1}`}
               />
             ))}

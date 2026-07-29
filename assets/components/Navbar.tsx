@@ -13,6 +13,7 @@ export default function Navbar({ onScrollToSection }: NavbarProps) {
     { label: 'Why UpDrive?', id: 'features' },
     { label: 'Pricing Packages', id: 'pricing' },
     { label: 'Success Stories', id: 'testimonials' },
+    { label: 'Leadership', id: 'leadership' },
   ];
 
   const handleItemClick = (id: string) => {
@@ -25,14 +26,14 @@ export default function Navbar({ onScrollToSection }: NavbarProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div 
-            onClick={() => handleItemClick('hero')} 
+          <div
+            onClick={() => handleItemClick('hero')}
             className="flex items-center cursor-pointer group"
           >
-            <img 
-              src={logoFull} 
-              alt="UpDrive Logo" 
-              className="h-7 w-auto block transition-transform group-hover:scale-[1.02]" 
+            <img
+              src={logoFull}
+              alt="UpDrive Logo"
+              className="h-7 w-auto block transition-transform group-hover:scale-[1.02]"
             />
           </div>
 
@@ -47,7 +48,7 @@ export default function Navbar({ onScrollToSection }: NavbarProps) {
                 {item.label}
               </button>
             ))}
-            
+
             <button
               onClick={() => handleItemClick('booking')}
               className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-4 py-2 rounded-xl transition-all shadow-md shadow-blue-600/15 cursor-pointer"

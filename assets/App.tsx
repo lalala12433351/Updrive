@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Features from './components/Features';
+import AboutUs from './components/AboutUs';
 import Pricing from './components/Pricing';
 import Testimonials from './components/Testimonials';
 import BookingForm from './components/BookingForm';
@@ -15,6 +16,7 @@ import CareersPage from './components/CareersPage';
 import BlogPage from './components/BlogPage';
 import { PricingPackage } from './types';
 import { dataService } from './services/dataService';
+
 
 export default function App() {
   const [selectedPackageId, setSelectedPackageId] = useState<string>('');
@@ -30,15 +32,15 @@ export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const isSuperAdmin = window.location.pathname.endsWith('/superadmin') || 
-                         window.location.hash === '#superadmin' || 
-                         window.location.search.includes('superadmin');
-    const isCareers = window.location.pathname.endsWith('/careers') || 
-                      window.location.hash === '#careers' || 
-                      window.location.search.includes('careers');
-    const isBlog = window.location.pathname.includes('/blog') || 
-                   window.location.hash === '#blog' || 
-                   window.location.search.includes('blog');
+    const isSuperAdmin = window.location.pathname.endsWith('/superadmin') ||
+      window.location.hash === '#superadmin' ||
+      window.location.search.includes('superadmin');
+    const isCareers = window.location.pathname.endsWith('/careers') ||
+      window.location.hash === '#careers' ||
+      window.location.search.includes('careers');
+    const isBlog = window.location.pathname.includes('/blog') ||
+      window.location.hash === '#blog' ||
+      window.location.search.includes('blog');
     if (isSuperAdmin) {
       setIsAdminView(true);
       setIsLoading(false);
@@ -116,10 +118,13 @@ export default function App() {
         {/* Features / Skill Roadmaps section */}
         <Features />
 
+        {/* About Us section */}
+        <AboutUs onScrollToSection={handleScrollToSection} />
+
         {/* Pricing tier Packages */}
-        <Pricing 
-          selectedPackageId={selectedPackageId} 
-          onSelectPackage={handleSelectPackage} 
+        <Pricing
+          selectedPackageId={selectedPackageId}
+          onSelectPackage={handleSelectPackage}
           selectedLocation={selectedLocation}
           onSelectLocation={setSelectedLocation}
           packages={packages}
@@ -134,10 +139,10 @@ export default function App() {
         <Testimonials />
 
         {/* Dynamic Contact Call Response Booking Form */}
-        <BookingForm 
-          selectedPackageId={selectedPackageId} 
+        <BookingForm
+          selectedPackageId={selectedPackageId}
           selectedLocation={selectedLocation}
-          onClearPackage={handleClearPackage} 
+          onClearPackage={handleClearPackage}
           packages={packages}
         />
       </main>

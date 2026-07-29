@@ -106,6 +106,7 @@ export interface BlogPost {
   authorName?: string;
   authorBio?: string;
   categories: string[];
+  category?: string;
   tags: string[];
   relatedPostIds?: string[];
   isPinned?: boolean;
