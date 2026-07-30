@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Settings, Plus, Trash2, LogOut, Globe, Lock, FileText, Image as ImageIcon, Upload, Check, Loader2, Save, X, Play, Star, Briefcase, ArrowLeft, LayoutDashboard, Copy, MessageSquare, Award, ShieldAlert } from 'lucide-react';
-import { PricingPackage, Testimonial, JobOpening, BlogPost } from '../types';
+import { Settings, Plus, Trash2, LogOut, Globe, Lock, FileText, Image as ImageIcon, Upload, Check, Loader2, Save, X, Play, Star, Briefcase, ArrowLeft, LayoutDashboard, Copy, MessageSquare, Award, ShieldAlert, Users } from 'lucide-react';
+import { PricingPackage, Testimonial, JobOpening, BlogPost, AboutUsContent, AboutUsMember } from '../types';
 import { GalleryItem } from './Gallery';
 import { InstagramReel } from './Testimonials';
 import { HeroSlide } from './Hero';
@@ -13,7 +13,7 @@ export default function AdminDashboard() {
   const [loginError, setLoginError] = useState<string>('');
   const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
 
-  const [activeTab, setActiveTab] = useState<'home' | 'courses' | 'gallery' | 'reels' | 'hero' | 'reviews' | 'jobs' | 'blog'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'courses' | 'gallery' | 'reels' | 'hero' | 'reviews' | 'jobs' | 'blog' | 'aboutus'>('home');
   const [packages, setPackages] = useState<PricingPackage[]>([]);
   const [gallery, setGallery] = useState<GalleryItem[]>([]);
   const [reels, setReels] = useState<InstagramReel[]>([]);
@@ -21,6 +21,22 @@ export default function AdminDashboard() {
   const [reviews, setReviews] = useState<Testimonial[]>([]);
   const [jobs, setJobs] = useState<JobOpening[]>([]);
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
+  const [aboutUsContent, setAboutUsContent] = useState<AboutUsContent>({
+    badge: 'About UpDrive Driving School',
+    title: 'Empowering Drivers with Confidence, Safety & Empathy',
+    subtitle: 'UpDrive was created with a single mission: to transform driving education into an empowering, stress-free, and enjoyable journey. We replace anxiety with real-world skill and confidence.',
+    storyTitle: 'Why Thousands Choose UpDrive to Master the Road',
+    storyDescription: "Whether you're stepping behind the wheel for the first time or looking to rebuild lost confidence, UpDrive provides a structured, judgment-free environment where every question is welcomed and every milestone is celebrated.",
+    teamTitle: 'Leadership & Executive Team',
+    teamSubtitle: 'Meet the visionary team steering UpDrive towards excellence in driver education.',
+    team: [
+      { id: 't-1', name: 'JASEENA', role: 'Co-Founder', image: '' },
+      { id: 't-2', name: 'JYOTHISH RAMACHANDRAN', role: 'Managing Director (MD)', image: '' },
+      { id: 't-3', name: 'SUGESH RAGHAVAN', role: 'Chief Technology Officer (CTO)', image: '' },
+      { id: 't-4', name: 'FAISAL C', role: 'Chief Operating Officer (COO)', image: '' },
+      { id: 't-5', name: 'JABIR C', role: 'Chief Executive Officer (CEO)', image: '' }
+    ]
+  });
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [isLoadingData, setIsLoadingData] = useState<boolean>(false);
 
@@ -32,6 +48,7 @@ export default function AdminDashboard() {
   const [isSavingReviews, setIsSavingReviews] = useState<boolean>(false);
   const [isSavingJobs, setIsSavingJobs] = useState<boolean>(false);
   const [isSavingBlogs, setIsSavingBlogs] = useState<boolean>(false);
+  const [isSavingAboutUs, setIsSavingAboutUs] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
   const [isFetchingCoverIdx, setIsFetchingCoverIdx] = useState<number | null>(null);
 
@@ -160,12 +177,77 @@ export default function AdminDashboard() {
 
       const blogsData = await dataService.getBlogs();
       setBlogs(blogsData);
+
+      const aboutData = await dataService.getAboutUs();
+      if (aboutData) {
+        setAboutUsContent(aboutData);
+      }
     } catch (err) {
       console.error('Error fetching admin data:', err);
       showToast('error', 'Failed to load database records.');
     } finally {
       setIsLoadingData(false);
     }
+  };
+
+  // About Us management helpers
+  const handleSaveAboutUs = async () => {
+    setIsSavingAboutUs(true);
+    try {
+      const result = await dataService.saveAboutUs(aboutUsContent);
+      showToast('success', result.message || 'About Us section updated successfully!');
+    } catch (err) {
+      showToast('error', 'Error saving About Us content.');
+    } finally {
+      setIsSavingAboutUs(false);
+    }
+  };
+
+  const handleAboutUsFieldChange = (field: keyof AboutUsContent, value: any) => {
+    setAboutUsContent(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleAddTeamMember = () => {
+    const newMember: AboutUsMember = {
+      id: 't-' + Date.now(),
+      name: 'NEW MEMBER NAME',
+      role: 'Role / Designation',
+      image: ''
+    };
+    setAboutUsContent(prev => ({
+      ...prev,
+      team: [...(prev.team || []), newMember]
+    }));
+  };
+
+  const handleDeleteTeamMember = (id: string) => {
+    setAboutUsContent(prev => ({
+      ...prev,
+      team: prev.team.filter(m => m.id !== id)
+    }));
+  };
+
+  const handleTeamMemberChange = (index: number, field: keyof AboutUsMember, value: string) => {
+    const updatedTeam = [...aboutUsContent.team];
+    updatedTeam[index] = { ...updatedTeam[index], [field]: value };
+    setAboutUsContent(prev => ({ ...prev, team: updatedTeam }));
+  };
+
+  const handleUploadTeamMemberImage = async (index: number, file: File) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = async () => {
+      try {
+        const base64Data = reader.result as string;
+        const uploadRes = await dataService.uploadImage(file.name, base64Data);
+        if (uploadRes.success && uploadRes.url) {
+          handleTeamMemberChange(index, 'image', uploadRes.url);
+          showToast('success', 'Team member photo uploaded!');
+        }
+      } catch (err) {
+        showToast('error', 'Image upload failed.');
+      }
+    };
   };
 
   // Course management helpers
@@ -1081,6 +1163,20 @@ export default function AdminDashboard() {
                 <div>
                   <h3 className="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition-colors">Blog / SEO</h3>
                   <p className="text-xxs text-slate-500 font-semibold mt-1">Write SEO blog posts with the block editor</p>
+                </div>
+              </button>
+
+              {/* About Us / Leadership */}
+              <button
+                onClick={() => setActiveTab('aboutus')}
+                className="group bg-white border border-slate-200 hover:border-cyan-300 rounded-3xl p-6 text-left space-y-4 shadow-xs hover:shadow-md transition-all cursor-pointer"
+              >
+                <div className="w-12 h-12 bg-cyan-50 group-hover:bg-cyan-100 rounded-2xl flex items-center justify-center transition-colors">
+                  <Users className="h-6 w-6 text-cyan-600" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 group-hover:text-cyan-600 transition-colors">About Us & Team</h3>
+                  <p className="text-xxs text-slate-500 font-semibold mt-1">Edit mission text, headers & leadership team</p>
                 </div>
               </button>
             </div>
@@ -4100,6 +4196,221 @@ export default function AdminDashboard() {
                     );
                   })()
                 )}
+
+              </div>
+            )}
+
+            {/* About Us & Leadership Management */}
+            {activeTab === 'aboutus' && (
+              <div className="space-y-8">
+                
+                {/* Header card with save button */}
+                <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-xs">
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-black text-slate-900 tracking-tight">About Us & Leadership Editor</h3>
+                    <p className="text-slate-500 text-xs">Edit main section headers, story description, and executive leadership team members.</p>
+                  </div>
+
+                  <button
+                    onClick={handleSaveAboutUs}
+                    disabled={isSavingAboutUs}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-extrabold py-2.5 px-4.5 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-md shadow-blue-500/10 cursor-pointer shrink-0"
+                  >
+                    {isSavingAboutUs ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4" />
+                        Save About Us Changes
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Main Text Content Settings */}
+                <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xs">
+                  <h4 className="text-sm font-black text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-3">Main Section Headers & Story</h4>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-1.5">
+                      <label className="text-xxs font-black text-slate-500 uppercase tracking-wider">Top Badge Text</label>
+                      <input
+                        type="text"
+                        value={aboutUsContent.badge || ''}
+                        onChange={(e) => handleAboutUsFieldChange('badge', e.target.value)}
+                        className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xxs font-black text-slate-500 uppercase tracking-wider">Main Section Title</label>
+                      <input
+                        type="text"
+                        value={aboutUsContent.title || ''}
+                        onChange={(e) => handleAboutUsFieldChange('title', e.target.value)}
+                        className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xxs font-black text-slate-500 uppercase tracking-wider">Main Subtitle Description</label>
+                    <textarea
+                      rows={2}
+                      value={aboutUsContent.subtitle || ''}
+                      onChange={(e) => handleAboutUsFieldChange('subtitle', e.target.value)}
+                      className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-medium focus:outline-none focus:border-blue-500 resize-none"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 border-t border-slate-100 pt-6">
+                    <div className="space-y-1.5">
+                      <label className="text-xxs font-black text-slate-500 uppercase tracking-wider">Leadership Section Title</label>
+                      <input
+                        type="text"
+                        value={aboutUsContent.teamTitle || ''}
+                        onChange={(e) => handleAboutUsFieldChange('teamTitle', e.target.value)}
+                        className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xxs font-black text-slate-500 uppercase tracking-wider">Leadership Subtitle</label>
+                      <input
+                        type="text"
+                        value={aboutUsContent.teamSubtitle || ''}
+                        onChange={(e) => handleAboutUsFieldChange('teamSubtitle', e.target.value)}
+                        className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-medium focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 border-t border-slate-100 pt-6">
+                    <div className="space-y-1.5">
+                      <label className="text-xxs font-black text-slate-500 uppercase tracking-wider">Story Section Title</label>
+                      <input
+                        type="text"
+                        value={aboutUsContent.storyTitle || ''}
+                        onChange={(e) => handleAboutUsFieldChange('storyTitle', e.target.value)}
+                        className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xxs font-black text-slate-500 uppercase tracking-wider">Story Description Paragraph</label>
+                      <textarea
+                        rows={3}
+                        value={aboutUsContent.storyDescription || ''}
+                        onChange={(e) => handleAboutUsFieldChange('storyDescription', e.target.value)}
+                        className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-medium focus:outline-none focus:border-blue-500 resize-none leading-relaxed"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Team Members List */}
+                <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xs">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div>
+                      <h4 className="text-sm font-black text-slate-900 uppercase tracking-wider">Executive & Leadership Team Members</h4>
+                      <p className="text-slate-500 text-xs mt-0.5">Manage names, designations, and profile pictures for the team grid.</p>
+                    </div>
+
+                    <button
+                      onClick={handleAddTeamMember}
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 px-3.5 rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add Member
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {aboutUsContent.team?.map((member, index) => (
+                      <div key={member.id || index} className="border border-slate-200 rounded-2xl p-5 relative space-y-4 bg-slate-50/50 hover:bg-white hover:border-slate-300 transition-all">
+                        <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
+                          <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg">
+                            Member #{index + 1}
+                          </span>
+                          <button
+                            onClick={() => handleDeleteTeamMember(member.id)}
+                            className="text-xs font-bold text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition-colors cursor-pointer"
+                            title="Delete Member"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+                          {/* Image preview / upload */}
+                          <div className="sm:col-span-4 flex flex-col items-center gap-2">
+                            <div className="w-20 h-24 rounded-xl bg-slate-200 overflow-hidden border border-slate-300 relative group">
+                              {member.image ? (
+                                <img src={member.image} alt={member.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-slate-400 font-bold text-xl">
+                                  {member.name ? member.name.charAt(0) : '?'}
+                                </div>
+                              )}
+                            </div>
+
+                            <label className="text-[10px] font-bold text-blue-600 hover:text-blue-700 cursor-pointer bg-white border border-slate-200 px-2.5 py-1 rounded-lg shadow-xs hover:border-blue-300 transition-colors">
+                              Upload Photo
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  if (e.target.files?.[0]) {
+                                    handleUploadTeamMemberImage(index, e.target.files[0]);
+                                  }
+                                }}
+                              />
+                            </label>
+                          </div>
+
+                          {/* Member details form */}
+                          <div className="sm:col-span-8 space-y-3">
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Full Name</label>
+                              <input
+                                type="text"
+                                value={member.name}
+                                onChange={(e) => handleTeamMemberChange(index, 'name', e.target.value)}
+                                className="w-full border border-slate-200 bg-white rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-blue-500"
+                              />
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Role / Title</label>
+                              <input
+                                type="text"
+                                value={member.role}
+                                onChange={(e) => handleTeamMemberChange(index, 'role', e.target.value)}
+                                className="w-full border border-slate-200 bg-white rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-500"
+                              />
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Image URL (or upload above)</label>
+                              <input
+                                type="text"
+                                value={member.image}
+                                onChange={(e) => handleTeamMemberChange(index, 'image', e.target.value)}
+                                placeholder="https://..."
+                                className="w-full border border-slate-200 bg-white rounded-xl px-3 py-1.5 text-[11px] font-mono text-slate-600 focus:outline-none focus:border-blue-500"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
               </div>
             )}

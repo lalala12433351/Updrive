@@ -128,7 +128,25 @@ function checkAuth(req, res, next) {
   }
 }
 
-// Courses/packages APIs
+// GET About Us content
+app.get('/api/aboutus', async (req, res) => {
+  const db = await readDB();
+  res.json(db.aboutUs || null);
+});
+
+// POST About Us content
+app.post('/api/aboutus', checkAuth, async (req, res) => {
+  const db = await readDB();
+  db.aboutUs = req.body;
+  const saved = await writeDB(db);
+  if (saved) {
+    res.json({ success: true, message: 'About Us content saved successfully.' });
+  } else {
+    res.status(500).json({ success: false, message: 'Failed to update About Us content.' });
+  }
+});
+
+// GET pricing courses/packages listAPIs
 app.get('/api/courses', async (req, res) => {
   const db = await readDB();
   res.json(db.packages || []);

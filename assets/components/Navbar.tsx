@@ -11,6 +11,7 @@ export default function Navbar({ onScrollToSection }: NavbarProps) {
 
   const navItems = [
     { label: 'Why UpDrive?', id: 'features' },
+    { label: 'About Us', id: 'aboutus' },
     { label: 'Pricing Packages', id: 'pricing' },
     { label: 'Success Stories', id: 'testimonials' },
     { label: 'Leadership', id: 'leadership' },

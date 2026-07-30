@@ -1,4 +1,4 @@
-import { Send } from 'lucide-react';
+import { Send, MapPin } from 'lucide-react';
 import logoWhite from '../images/logo_white.png';
 
 interface FooterProps {
@@ -15,23 +15,38 @@ export default function Footer({ onShowTerms }: FooterProps) {
   return (
     <footer className="bg-slate-900 text-slate-400 py-16 border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-start pb-12 border-b border-slate-800">
           {/* Logo & Description */}
           <div className="md:col-span-4 space-y-5 text-left">
-            <div 
-              onClick={handleScrollToTop} 
+            <div
+              onClick={handleScrollToTop}
               className="flex items-center cursor-pointer group w-fit"
             >
-              <img 
-                src={logoWhite} 
-                alt="UpDrive Logo" 
-                className="h-7 w-auto block transition-transform group-hover:scale-[1.02]" 
+              <img
+                src={logoWhite}
+                alt="UpDrive Logo"
+                className="h-7 w-auto block transition-transform group-hover:scale-[1.02]"
               />
             </div>
             <p className="text-sm text-slate-400 leading-relaxed max-w-sm">
               Helping licensed drivers reclaim confidence, bypass traffic panic, and enjoy independent, safe travel in real roads of our cities.
             </p>
+
+            {/* Office Location */}
+            <div className="pt-2 flex items-start gap-3 text-slate-400">
+              <div className="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/50 shrink-0 text-blue-400 mt-0.5">
+                <MapPin className="h-4 w-4" />
+              </div>
+              <div>
+                <h5 className="text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">
+                  OFFICE LOCATION
+                </h5>
+                <p className="text-xs leading-relaxed text-slate-400 max-w-xs">
+                  3rd floor, Venus Building, 3rd Main, 1/2 Kalyanarnantappa, Jakkasandra, Koramangala, HSR Layout, Bengaluru, Karnataka 560034
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Quick links */}
@@ -84,16 +99,16 @@ export default function Footer({ onShowTerms }: FooterProps) {
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
               Stay in the loop with driver safety metrics and defensive tips.
             </p>
-            
+
             <div className="flex gap-2">
-              <input 
-                type="email" 
-                placeholder="Your email address" 
+              <input
+                type="email"
+                placeholder="Your email address"
                 className="w-full bg-slate-800 border border-slate-700/60 text-white placeholder-slate-500 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors"
                 disabled
               />
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="p-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors shrink-0"
                 aria-label="Submit email"
                 disabled
@@ -109,19 +124,19 @@ export default function Footer({ onShowTerms }: FooterProps) {
           <p>© {currentYear} UpDrive. All rights reserved.</p>
           <div className="flex gap-6">
             <span className="hover:text-slate-300 transition-colors cursor-pointer">Privacy Policy</span>
-            <span 
+            <span
               onClick={onShowTerms}
               className="hover:text-slate-300 transition-colors cursor-pointer"
             >
               Terms & Conditions
             </span>
-            <a 
+            <a
               href="/careers"
               className="hover:text-slate-300 transition-colors cursor-pointer"
             >
               Careers
             </a>
-            <a 
+            <a
               href="/blog"
               className="hover:text-slate-300 transition-colors cursor-pointer"
             >

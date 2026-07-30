@@ -7,6 +7,8 @@ import jyothishImg from '../images/jyothish.png';
 import sugeshImg from '../images/sugesh.png';
 import faisalImg from '../images/faisal.png';
 import jabirImg from '../images/jabir.png';
+import { dataService } from '../services/dataService';
+import { AboutUsContent } from '../types';
 
 interface AboutUsProps {
   onScrollToSection?: (id: string) => void;
@@ -64,6 +66,16 @@ function AnimatedCounter({ numericValue, decimals = 0, prefix = '', suffix = '',
 }
 
 export default function AboutUs({ onScrollToSection }: AboutUsProps) {
+  const [aboutUsData, setAboutUsData] = useState<AboutUsContent | null>(null);
+
+  useEffect(() => {
+    const fetchAboutData = async () => {
+      const data = await dataService.getAboutUs();
+      setAboutUsData(data);
+    };
+    fetchAboutData();
+  }, []);
+
   const stats = [
     {
       numericValue: 10000,
@@ -120,33 +132,20 @@ export default function AboutUs({ onScrollToSection }: AboutUsProps) {
     }
   ];
 
-  const team = [
-    {
-      name: 'JASEENA',
-      role: 'Cofounder',
-      image: jaseenaImg
-    },
-    {
-      name: 'JYOTHISH RAMACHANDRAN',
-      role: 'Managing Director (MD)',
-      image: jyothishImg
-    },
-    {
-      name: 'SUGESH RAGHAVAN',
-      role: 'Chief Technology Officer (CTO)',
-      image: sugeshImg
-    },
-    {
-      name: 'FAISAL C',
-      role: 'Chief Operating Officer (COO)',
-      image: faisalImg
-    },
-    {
-      name: 'JABIR C',
-      role: 'Chief Executive Officer (CEO)',
-      image: jabirImg
-    }
+  const defaultTeam = [
+    { id: 't-1', name: 'JASEENA', role: 'Co-Founder', image: jaseenaImg },
+    { id: 't-2', name: 'JYOTHISH RAMACHANDRAN', role: 'Managing Director (MD)', image: jyothishImg },
+    { id: 't-3', name: 'SUGESH RAGHAVAN', role: 'Chief Technology Officer (CTO)', image: sugeshImg },
+    { id: 't-4', name: 'FAISAL C', role: 'Chief Operating Officer (COO)', image: faisalImg },
+    { id: 't-5', name: 'JABIR C', role: 'Chief Executive Officer (CEO)', image: jabirImg }
   ];
+
+  const teamMembers = aboutUsData?.team && aboutUsData.team.length > 0 
+    ? aboutUsData.team.map((m, idx) => ({
+        ...m,
+        image: m.image || defaultTeam[idx]?.image || jaseenaImg
+      }))
+    : defaultTeam;
 
   return (
     <section id="aboutus" className="py-24 bg-gradient-to-b from-white via-slate-50/50 to-white overflow-hidden scroll-mt-16">
@@ -155,13 +154,13 @@ export default function AboutUs({ onScrollToSection }: AboutUsProps) {
         {/* Header Section */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold tracking-wider text-blue-600 uppercase bg-blue-50 border border-blue-100 rounded-full mb-4 shadow-sm">
-            About UpDrive Driving School
+            {aboutUsData?.badge || 'About UpDrive Driving School'}
           </span>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
-            Empowering Drivers with Confidence, Safety & Empathy
+            {aboutUsData?.title || 'Empowering Drivers with Confidence, Safety & Empathy'}
           </h2>
           <p className="mt-4 text-slate-600 text-base sm:text-lg leading-relaxed">
-            UpDrive was created with a single mission: to transform driving education into an empowering, stress-free, and enjoyable journey. We replace anxiety with real-world skill and confidence.
+            {aboutUsData?.subtitle || 'UpDrive was created with a single mission: to transform driving education into an empowering, stress-free, and enjoyable journey. We replace anxiety with real-world skill and confidence.'}
           </p>
         </div>
 
@@ -169,17 +168,17 @@ export default function AboutUs({ onScrollToSection }: AboutUsProps) {
         <div id="leadership" className="mb-20 scroll-mt-24">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Leadership & Executive Team
+              {aboutUsData?.teamTitle || 'Leadership & Executive Team'}
             </h3>
             <p className="mt-2 text-slate-600 text-sm sm:text-base">
-              Meet the visionary team steering UpDrive towards excellence in driver education.
+              {aboutUsData?.teamSubtitle || 'Meet the visionary team steering UpDrive towards excellence in driver education.'}
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-            {team.map((member, idx) => (
+            {teamMembers.map((member, idx) => (
               <motion.div
-                key={idx}
+                key={member.id || idx}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -219,10 +218,10 @@ export default function AboutUs({ onScrollToSection }: AboutUsProps) {
           >
             <div className="space-y-4">
               <h3 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-                Why Thousands Choose UpDrive to Master the Road
+                {aboutUsData?.storyTitle || 'Why Thousands Choose UpDrive to Master the Road'}
               </h3>
               <p className="text-slate-600 leading-relaxed text-sm sm:text-base">
-                Whether you're stepping behind the wheel for the first time or looking to rebuild lost confidence, UpDrive provides a structured, judgment-free environment where every question is welcomed and every milestone is celebrated.
+                {aboutUsData?.storyDescription || "Whether you're stepping behind the wheel for the first time or looking to rebuild lost confidence, UpDrive provides a structured, judgment-free environment where every question is welcomed and every milestone is celebrated."}
               </p>
             </div>
 

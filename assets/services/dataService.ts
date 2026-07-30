@@ -1,4 +1,4 @@
-import { PricingPackage, Testimonial, JobOpening, BlogPost } from '../types';
+import { PricingPackage, Testimonial, JobOpening, BlogPost, AboutUsContent } from '../types';
 import { GalleryItem } from '../components/Gallery';
 import { InstagramReel } from '../components/Testimonials';
 import { HeroSlide } from '../components/Hero';
@@ -14,6 +14,7 @@ const STORAGE_KEYS = {
   REVIEWS: 'updrive_db_reviews',
   JOBS: 'updrive_db_jobs',
   BLOGS: 'updrive_db_blogs',
+  ABOUTUS: 'updrive_db_aboutus',
 };
 
 // Safe localStorage wrapper to prevent QuotaExceededError crashes
@@ -359,6 +360,58 @@ export const dataService = {
       }
     } catch (e) {}
     return { success: true, mode: 'local', message: 'Blog posts saved to website storage!' };
+  },
+
+  // Get About Us Content
+  async getAboutUs(): Promise<AboutUsContent> {
+    const serverData = await safeFetchJson<AboutUsContent>('/api/aboutus');
+    if (serverData && typeof serverData === 'object' && serverData.title) {
+      safeSetLocalStorage(STORAGE_KEYS.ABOUTUS, JSON.stringify(serverData));
+      return serverData;
+    }
+    const local = localStorage.getItem(STORAGE_KEYS.ABOUTUS);
+    if (local) {
+      try { return JSON.parse(local); } catch (e) {}
+    }
+    const defaultData = ((dbData as any).aboutUs || {
+      badge: 'About UpDrive Driving School',
+      title: 'Empowering Drivers with Confidence, Safety & Empathy',
+      subtitle: 'UpDrive was created with a single mission: to transform driving education into an empowering, stress-free, and enjoyable journey. We replace anxiety with real-world skill and confidence.',
+      storyTitle: 'Why Thousands Choose UpDrive to Master the Road',
+      storyDescription: "Whether you're stepping behind the wheel for the first time or looking to rebuild lost confidence, UpDrive provides a structured, judgment-free environment where every question is welcomed and every milestone is celebrated.",
+      teamTitle: 'Leadership & Executive Team',
+      teamSubtitle: 'Meet the visionary team steering UpDrive towards excellence in driver education.',
+      team: [
+        { id: 't-1', name: 'JASEENA', role: 'Co-Founder', image: '' },
+        { id: 't-2', name: 'JYOTHISH RAMACHANDRAN', role: 'Managing Director (MD)', image: '' },
+        { id: 't-3', name: 'SUGESH RAGHAVAN', role: 'Chief Technology Officer (CTO)', image: '' },
+        { id: 't-4', name: 'FAISAL C', role: 'Chief Operating Officer (COO)', image: '' },
+        { id: 't-5', name: 'JABIR C', role: 'Chief Executive Officer (CEO)', image: '' }
+      ]
+    }) as AboutUsContent;
+    safeSetLocalStorage(STORAGE_KEYS.ABOUTUS, JSON.stringify(defaultData));
+    return defaultData;
+  },
+
+  // Save About Us Content
+  async saveAboutUs(aboutUs: AboutUsContent): Promise<{ success: boolean; mode: 'server' | 'local'; message?: string }> {
+    safeSetLocalStorage(STORAGE_KEYS.ABOUTUS, JSON.stringify(aboutUs));
+    const token = localStorage.getItem('updrive_superadmin_token');
+    try {
+      const res = await fetchWithTimeout('/api/aboutus', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(aboutUs),
+      }, 800);
+      const contentType = res.headers.get('content-type');
+      if (res.ok && contentType && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (data.success) {
+          return { success: true, mode: 'server', message: 'About Us section saved to server!' };
+        }
+      }
+    } catch (e) {}
+    return { success: true, mode: 'local', message: 'About Us section saved to website storage!' };
   },
 
   // Upload Image (supports compressed Base64 Data URL fallback for static hosting)

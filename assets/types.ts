@@ -86,6 +86,24 @@ export interface BlogHistoryEntry {
   blocks: BlogBlock[];
 }
 
+export interface AboutUsMember {
+  id: string;
+  name: string;
+  role: string;
+  image: string;
+}
+
+export interface AboutUsContent {
+  badge: string;
+  title: string;
+  subtitle: string;
+  storyTitle: string;
+  storyDescription: string;
+  teamTitle: string;
+  teamSubtitle: string;
+  team: AboutUsMember[];
+}
+
 export interface BlogPost {
   id: string;
   slug: string;
