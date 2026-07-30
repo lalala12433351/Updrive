@@ -11,13 +11,26 @@ const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
+const DATA_DIR = path.join(__dirname, 'data');
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
+const DB_PATH = path.join(DATA_DIR, 'db.json');
+
+// Ensure required directories exist on startup
+async function ensureDirectoriesExist() {
+  try {
+    await fs.mkdir(DATA_DIR, { recursive: true });
+    await fs.mkdir(UPLOADS_DIR, { recursive: true });
+  } catch (err) {
+    console.error("Error creating required directories:", err);
+  }
+}
+ensureDirectoriesExist();
+
 // Serve static uploads
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(UPLOADS_DIR));
 
 // Serve static files from the built dist directory
 app.use(express.static(path.join(__dirname, 'dist')));
-
-const DB_PATH = path.join(__dirname, 'data', 'db.json');
 
 // Read helper
 async function readDB() {
