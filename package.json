@@ -7,10 +7,10 @@
     "dev": "vite --port=3000 --host=0.0.0.0",
     "dev:all": "node server.js & vite --port=3000 --host=0.0.0.0",
     "server": "node server.js",
-    "build": "cp index.source.html index.html && vite build && cp dist/index.html index.html && cp -r dist/assets/* assets/",
+    "build": "vite build",
     "preview": "vite preview",
     "start": "node server.js",
-    "clean": "rm -rf dist",
+    "clean": "vite build --clearScreen false",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
