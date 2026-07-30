@@ -1,4 +1,6 @@
 {
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "headers": [
     {
       "source": "/assets/(.*).js",
@@ -15,7 +17,7 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!assets/|.*\\..*).*)",
+      "source": "/((?!assets/|favicon.ico|.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|json|woff|woff2)).*)",
       "destination": "/index.html"
     }
   ]
