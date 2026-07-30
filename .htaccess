@@ -1,17 +1,25 @@
-<IfModule mod_rewrite.c>
-  RewriteEngine On
-  
-  # Serve javascript files with correct MIME type
+# Force MIME types for Hostinger
+AddType application/javascript .js .mjs
+AddType text/css .css
+AddType image/svg+xml .svg
+
+<IfModule mod_mime.c>
+  AddType application/javascript .js .mjs
+  AddType text/css .css
+</IfModule>
+
+<IfModule mod_headers.c>
   <FilesMatch "\.(js|mjs)$">
     Header set Content-Type "application/javascript; charset=utf-8"
   </FilesMatch>
-
-  # Serve css files with correct MIME type
   <FilesMatch "\.css$">
     Header set Content-Type "text/css; charset=utf-8"
   </FilesMatch>
+</IfModule>
 
-  # SPA fallback to index.html for non-file requests
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule ^ index.html [L]
