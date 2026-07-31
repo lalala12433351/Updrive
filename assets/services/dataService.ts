@@ -382,7 +382,7 @@ export const dataService = {
       teamTitle: 'Leadership & Executive Team',
       teamSubtitle: 'Meet the visionary team steering UpDrive towards excellence in driver education.',
       team: [
-        { id: 't-1', name: 'JASEENA', role: 'Co-Founder', image: '' },
+        { id: 't-1', name: 'RASEENA C', role: 'Co-Founder', image: '' },
         { id: 't-2', name: 'JYOTHISH RAMACHANDRAN', role: 'Managing Director (MD)', image: '' },
         { id: 't-3', name: 'SUGESH RAGHAVAN', role: 'Chief Technology Officer (CTO)', image: '' },
         { id: 't-4', name: 'FAISAL C', role: 'Chief Operating Officer (COO)', image: '' },
