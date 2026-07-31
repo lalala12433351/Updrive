@@ -133,18 +133,19 @@ export default function AboutUs({ onScrollToSection }: AboutUsProps) {
   ];
 
   const defaultTeam = [
-    { id: 't-1', name: 'JASEENA', role: 'Co-Founder', image: jaseenaImg },
+    { id: 't-1', name: 'RASEENA C', role: 'Co-Founder', image: jaseenaImg },
     { id: 't-2', name: 'JYOTHISH RAMACHANDRAN', role: 'Managing Director (MD)', image: jyothishImg },
     { id: 't-3', name: 'SUGESH RAGHAVAN', role: 'Chief Technology Officer (CTO)', image: sugeshImg },
     { id: 't-4', name: 'FAISAL C', role: 'Chief Operating Officer (COO)', image: faisalImg },
     { id: 't-5', name: 'JABIR C', role: 'Chief Executive Officer (CEO)', image: jabirImg }
   ];
 
-  const teamMembers = aboutUsData?.team && aboutUsData.team.length > 0 
+  const teamMembers = aboutUsData?.team && aboutUsData.team.length > 0
     ? aboutUsData.team.map((m, idx) => ({
-        ...m,
-        image: m.image || defaultTeam[idx]?.image || jaseenaImg
-      }))
+      ...m,
+      name: m.name === 'JASEENA' ? 'RASEENA C' : m.name,
+      image: m.image || defaultTeam[idx]?.image || jaseenaImg
+    }))
     : defaultTeam;
 
   return (
