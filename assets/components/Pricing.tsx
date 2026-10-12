@@ -294,6 +294,9 @@ export default function Pricing({
           <p className="mt-3 text-slate-600 text-sm sm:text-base">
             Choose your state below to see pricing, schedules, and custom packages tailored for you.
           </p>
+          <p className="mt-2 text-xs sm:text-[13px] text-slate-400 font-medium leading-relaxed">
+            *The prices listed on this website reflect information available as of 1 January 2026. Please contact Updrive to confirm the current prices.
+          </p>
         </div>
 
         {/* Circular Buttons Location Selector */}
