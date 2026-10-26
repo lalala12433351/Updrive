@@ -14,8 +14,26 @@ console.log('[Build] Step 2: Running Vite build...');
 execSync('npx vite build', { stdio: 'inherit', cwd: rootDir });
 
 console.log('[Build] Step 3: Copying dist/index.html to root index.html for static web hosting');
-if (fs.existsSync(path.join(distDir, 'index.html'))) {
-  fs.copyFileSync(path.join(distDir, 'index.html'), path.join(rootDir, 'index.html'));
+const builtIndex = path.join(distDir, 'index.html');
+if (fs.existsSync(builtIndex)) {
+  fs.copyFileSync(builtIndex, path.join(rootDir, 'index.html'));
+}
+
+// Real files so Hostinger serves these routes instead of a 404.
+// The "&" in /t&c/ is not rewritten reliably on static hosts.
+const spaRoutes = [
+  'terms/students/index.html',
+  'terms/instructors/index.html',
+  't&c/students/index.html',
+  't&c/instructors/index.html',
+];
+console.log('[Build] Step 3b: Publishing terms routes as real index.html files');
+for (const rel of spaRoutes) {
+  for (const base of [rootDir, distDir]) {
+    const dest = path.join(base, rel);
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.copyFileSync(path.join(rootDir, 'index.html'), dest);
+  }
 }
 
 console.log('[Build] Step 4: Syncing compiled assets to root assets/');

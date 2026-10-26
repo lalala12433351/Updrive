@@ -17,6 +17,10 @@
     }
   ],
   "rewrites": [
+    { "source": "/t&c/students", "destination": "/index.html" },
+    { "source": "/t&c/instructors", "destination": "/index.html" },
+    { "source": "/terms/students", "destination": "/index.html" },
+    { "source": "/terms/instructors", "destination": "/index.html" },
     {
       "source": "/((?!assets/|.*\\..*).*)",
       "destination": "/index.html"
