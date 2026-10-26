@@ -130,7 +130,15 @@ export default function TermsModal({ isOpen, onClose }: TermsModalProps) {
             </div>
 
             {/* Footer Acceptance CTA */}
-            <div className="p-5 border-t border-slate-100 flex justify-end bg-slate-50/50">
+            <div className="p-5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
+              <a
+                href="/t&c/students"
+                onClick={onClose}
+                className="text-xs font-bold text-blue-600 hover:text-blue-800 underline underline-offset-2"
+              >
+                View Full Documents Page (/t&c/students)
+              </a>
+
               <button
                 type="button"
                 onClick={onClose}

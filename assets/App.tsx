@@ -14,6 +14,8 @@ import Gallery, { GalleryItem } from './components/Gallery';
 import AdminDashboard from './components/AdminDashboard';
 import CareersPage from './components/CareersPage';
 import BlogPage from './components/BlogPage';
+import StudentTermsPage from './components/StudentTermsPage';
+import InstructorTermsPage from './components/InstructorTermsPage';
 import { PricingPackage } from './types';
 import { dataService } from './services/dataService';
 
@@ -23,47 +25,116 @@ export default function App() {
   const [selectedLocation, setSelectedLocation] = useState<string>('kerala');
   const [showTermsModal, setShowTermsModal] = useState<boolean>(false);
 
-  // State-based routing for /admin, /careers and /blog view
+  // State-based routing for /admin, /careers, /blog, /t&c/students and /t&c/instructors view
   const [isAdminView, setIsAdminView] = useState<boolean>(false);
   const [isCareersView, setIsCareersView] = useState<boolean>(false);
   const [isBlogView, setIsBlogView] = useState<boolean>(false);
+  const [isStudentTermsView, setIsStudentTermsView] = useState<boolean>(false);
+  const [isInstructorTermsView, setIsInstructorTermsView] = useState<boolean>(false);
   const [packages, setPackages] = useState<PricingPackage[]>([]);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const isSuperAdmin = window.location.pathname.endsWith('/superadmin') ||
-      window.location.hash === '#superadmin' ||
-      window.location.search.includes('superadmin');
-    const isCareers = window.location.pathname.endsWith('/careers') ||
-      window.location.hash === '#careers' ||
-      window.location.search.includes('careers');
-    const isBlog = window.location.pathname.includes('/blog') ||
-      window.location.hash === '#blog' ||
-      window.location.search.includes('blog');
-    if (isSuperAdmin) {
-      setIsAdminView(true);
-      setIsLoading(false);
-    } else if (isCareers) {
-      setIsCareersView(true);
-      setIsLoading(false);
-    } else if (isBlog) {
-      setIsBlogView(true);
-      setIsLoading(false);
-    } else {
-      // Fetch dynamic content on mount
-      const fetchContent = async () => {
-        const courses = await dataService.getCourses();
-        setPackages(courses);
+    const handleRouteChange = () => {
+      const rawPath = window.location.pathname;
+      let decodedPath = '';
+      try {
+        decodedPath = decodeURIComponent(rawPath).toLowerCase();
+      } catch {
+        decodedPath = rawPath.toLowerCase();
+      }
+      const hash = window.location.hash.toLowerCase();
+      const search = window.location.search.toLowerCase();
 
-        const gallery = await dataService.getGallery();
-        setGalleryItems(gallery);
+      const isSuperAdmin = decodedPath.endsWith('/superadmin') ||
+        hash === '#superadmin' ||
+        search.includes('superadmin');
+      const isCareers = decodedPath.endsWith('/careers') ||
+        hash === '#careers' ||
+        search.includes('careers');
+      const isBlog = decodedPath.includes('/blog') ||
+        hash === '#blog' ||
+        search.includes('blog');
+      const isStudentTerms = 
+        decodedPath.includes('/t&c/students') ||
+        rawPath.toLowerCase().includes('/t%26c/students') ||
+        decodedPath.includes('/tc/students') ||
+        decodedPath.includes('/terms/students') ||
+        hash.includes('t&c/students') ||
+        hash.includes('tc/students') ||
+        search.includes('t&c/students') ||
+        search.includes('tc/students');
+      const isInstructorTerms = 
+        decodedPath.includes('/t&c/instructors') ||
+        rawPath.toLowerCase().includes('/t%26c/instructors') ||
+        decodedPath.includes('/tc/instructors') ||
+        decodedPath.includes('/terms/instructors') ||
+        hash.includes('t&c/instructors') ||
+        hash.includes('tc/instructors') ||
+        search.includes('t&c/instructors') ||
+        search.includes('tc/instructors');
 
+      if (isSuperAdmin) {
+        setIsAdminView(true);
+        setIsStudentTermsView(false);
+        setIsInstructorTermsView(false);
+        setIsCareersView(false);
+        setIsBlogView(false);
         setIsLoading(false);
-      };
+      } else if (isInstructorTerms) {
+        setIsInstructorTermsView(true);
+        setIsStudentTermsView(false);
+        setIsAdminView(false);
+        setIsCareersView(false);
+        setIsBlogView(false);
+        setIsLoading(false);
+      } else if (isStudentTerms) {
+        setIsStudentTermsView(true);
+        setIsInstructorTermsView(false);
+        setIsAdminView(false);
+        setIsCareersView(false);
+        setIsBlogView(false);
+        setIsLoading(false);
+      } else if (isCareers) {
+        setIsCareersView(true);
+        setIsAdminView(false);
+        setIsStudentTermsView(false);
+        setIsInstructorTermsView(false);
+        setIsBlogView(false);
+        setIsLoading(false);
+      } else if (isBlog) {
+        setIsBlogView(true);
+        setIsAdminView(false);
+        setIsStudentTermsView(false);
+        setIsInstructorTermsView(false);
+        setIsCareersView(false);
+        setIsLoading(false);
+      } else {
+        setIsAdminView(false);
+        setIsStudentTermsView(false);
+        setIsInstructorTermsView(false);
+        setIsCareersView(false);
+        setIsBlogView(false);
 
-      fetchContent();
-    }
+        // Fetch dynamic content on mount
+        const fetchContent = async () => {
+          const courses = await dataService.getCourses();
+          setPackages(courses);
+
+          const gallery = await dataService.getGallery();
+          setGalleryItems(gallery);
+
+          setIsLoading(false);
+        };
+
+        fetchContent();
+      }
+    };
+
+    handleRouteChange();
+    window.addEventListener('popstate', handleRouteChange);
+    return () => window.removeEventListener('popstate', handleRouteChange);
   }, []);
 
   const handleScrollToSection = (id: string) => {
@@ -89,6 +160,28 @@ export default function App() {
 
   if (isAdminView) {
     return <AdminDashboard />;
+  }
+
+  if (isInstructorTermsView) {
+    return (
+      <InstructorTermsPage 
+        onBackToHome={() => {
+          window.history.pushState({}, '', '/');
+          window.dispatchEvent(new PopStateEvent('popstate'));
+        }} 
+      />
+    );
+  }
+
+  if (isStudentTermsView) {
+    return (
+      <StudentTermsPage 
+        onBackToHome={() => {
+          window.history.pushState({}, '', '/');
+          setIsStudentTermsView(false);
+        }} 
+      />
+    );
   }
 
   if (isCareersView) {

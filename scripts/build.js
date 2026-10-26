@@ -35,4 +35,20 @@ if (fs.existsSync(distAssets)) {
   });
 }
 
+console.log('[Build] Step 5: Syncing instructor_docs to root instructor_docs/');
+const distDocs = path.join(distDir, 'instructor_docs');
+const rootDocs = path.join(rootDir, 'instructor_docs');
+if (fs.existsSync(distDocs)) {
+  if (!fs.existsSync(rootDocs)) {
+    fs.mkdirSync(rootDocs, { recursive: true });
+  }
+  fs.readdirSync(distDocs).forEach(file => {
+    const srcFile = path.join(distDocs, file);
+    const destFile = path.join(rootDocs, file);
+    if (fs.statSync(srcFile).isFile()) {
+      fs.copyFileSync(srcFile, destFile);
+    }
+  });
+}
+
 console.log('[Build] Build complete! Root index.html and assets/ updated for Hostinger production.');

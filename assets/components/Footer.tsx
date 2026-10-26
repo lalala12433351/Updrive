@@ -122,7 +122,7 @@ export default function Footer({ onShowTerms }: FooterProps) {
         {/* Footer Meta bottom */}
         <div className="pt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs font-medium">
           <p>© {currentYear} UpDrive. All rights reserved.</p>
-          <div className="flex gap-6">
+          <div className="flex flex-wrap gap-4 sm:gap-6 justify-center">
             <span className="hover:text-slate-300 transition-colors cursor-pointer">Privacy Policy</span>
             <span
               onClick={onShowTerms}
@@ -130,6 +130,18 @@ export default function Footer({ onShowTerms }: FooterProps) {
             >
               Terms & Conditions
             </span>
+            <a
+              href="/t&c/students"
+              className="hover:text-slate-300 transition-colors cursor-pointer text-blue-400 font-semibold"
+            >
+              Student Terms & Conditions
+            </a>
+            <a
+              href="/t&c/instructors"
+              className="hover:text-slate-300 transition-colors cursor-pointer text-blue-400 font-semibold"
+            >
+              Instructor Terms & Conditions
+            </a>
             <a
               href="/careers"
               className="hover:text-slate-300 transition-colors cursor-pointer"
@@ -142,7 +154,6 @@ export default function Footer({ onShowTerms }: FooterProps) {
             >
               Blog / News
             </a>
-            <span className="hover:text-slate-300 transition-colors cursor-pointer">Student Safety Code</span>
           </div>
         </div>
 
